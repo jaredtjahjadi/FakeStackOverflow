@@ -8,6 +8,7 @@
 
 const express = require('express')
 const cors = require('cors')
+const bcrypt = require('bcrypt')
 
 const Question = require('./models/questions')
 const Tag = require('./models/tags')
