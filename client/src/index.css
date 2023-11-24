@@ -11,13 +11,29 @@
     align-items: center;
 }
 
-.welcome-option
+.welcome-button
 {
     background-color: lightgray;
     color: black;
     cursor: pointer;
     font-size: larger;
     margin: 10px;
+}
+
+.welcome-form
+{
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    justify-content: space-evenly;
+    align-items: center;
+
+}
+
+.welcome-input
+{
+    font-size: larger;
+
 }
 
 /* Home Page */

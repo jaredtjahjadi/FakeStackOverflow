@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import FormField from './FormField';
 import * as Constants from '../constants';
 // import { model } from './fakestackoverflow';
-import { QuestionsInfo } from './fakestackoverflow';
+import { QuestionsInfo } from './HomePage';
 import axios from 'axios'
 
 const emptyFieldStr = "This field must be filled out."

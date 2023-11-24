@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { QuestionsInfo } from './fakestackoverflow';
+import { QuestionsInfo } from './HomePage';
 import { AskQuestion } from './Body';
 import { QuestionDateMetadata } from './QuestionsPage';
 import * as Constants from '../constants';

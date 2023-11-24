@@ -8,7 +8,7 @@ export const model = new Model(); // Create a singleton representing the model t
 
 export const QuestionsInfo = createContext();
 
-export default function FakeStackOverflow() {
+export default function HomePage() {
   const [currPage, setCurrPage] = useState(Constants.QUESTIONS_PAGE);
   const [currFilter, setCurrFilter] = useState(Constants.NEWEST_FILTER);
   const [currDisplayedQuestions, setDisplayedQuestions] = useState([]) // For Questions Page
@@ -97,30 +97,30 @@ export default function FakeStackOverflow() {
 
   function SearchBar() {
     function handleSearch(event) {
-        if(event.key === 'Enter'){
-            setCurrPage(Constants.QUESTIONS_PAGE)
-            const input = event.target.value;
+      if(event.key === 'Enter'){
+        setCurrPage(Constants.QUESTIONS_PAGE)
+        const input = event.target.value;
 
-            const getSearchResults = async () => {
-                await axios.get('http://localhost:8000/searchResults', {
-                    params: input
-                })
-                .then(res => {
-                      const questions = res.data;
-                      console.log(questions)
-                      setNumQuestions(questions.length)
-                      setTypeResults("Search Results")
-                      setDisplayedQuestions(questions);
-                      setCurrFilter(Constants.SEARCH_FILTER);
+        const getSearchResults = async () => {
+          await axios.get('http://localhost:8000/searchResults', {
+              params: input
+          })
+          .then(res => {
+            const questions = res.data;
+            console.log(questions)
+            setNumQuestions(questions.length)
+            setTypeResults("Search Results")
+            setDisplayedQuestions(questions);
+            setCurrFilter(Constants.SEARCH_FILTER);
 
-                      document.getElementById("Newest").classList.remove("active");
-                      document.getElementById("Active").classList.remove("active");
-                      document.getElementById("Unanswered").classList.remove("active");
-                    }
-                )
+            document.getElementById("Newest").classList.remove("active");
+            document.getElementById("Active").classList.remove("active");
+            document.getElementById("Unanswered").classList.remove("active");
             }
-            getSearchResults()
+          )
         }
+        getSearchResults()
+      }
     }
 
     return (<input id="search-bar" type="text" placeholder="Search . . ." onKeyUp={handleSearch}></input>)

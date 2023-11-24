@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import * as Constants from '../constants';
 import FormField from './FormField';
-import { QuestionsInfo } from './fakestackoverflow';
+import { QuestionsInfo } from './HomePage';
 import { invalidForm } from './PostQuestionPage';
 import axios from 'axios';
 

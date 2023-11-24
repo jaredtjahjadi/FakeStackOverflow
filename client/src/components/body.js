@@ -4,7 +4,7 @@ import QuestionsPage from './QuestionsPage';
 import PostQuestionPage from './PostQuestionPage';
 import TagsPage from './TagsPage';
 import { SeeAnswers } from './SeeAnswers';
-import { QuestionsInfo } from './fakestackoverflow';
+import { QuestionsInfo } from './HomePage';
 import PostAnswerPage from './PostAnswerPage';
 
 export default function Body() {
