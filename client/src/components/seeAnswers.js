@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { QuestionsInfo } from './fakestackoverflow';
-import { AskQuestion } from './global';
-import { QuestionDateMetadata } from './questionspage';
+import { QuestionsInfo } from './HomePage';
+import { AskQuestion } from './Body';
+import { QuestionDateMetadata } from './QuestionsPage';
 import * as Constants from '../constants';
 import axios from 'axios';
 

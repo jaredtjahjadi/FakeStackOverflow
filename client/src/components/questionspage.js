@@ -1,8 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { AskQuestion } from './global';
-import {model} from './fakestackoverflow';
 import * as Constants from '../constants'
-import {QuestionsInfo} from './fakestackoverflow'
+import {QuestionsInfo} from './HomePage'
 import axios from 'axios'
 
 // Contains all of the content specifically associated with the questions page.
@@ -33,6 +31,17 @@ function TypeResults() {
         <h1 id="type-results-header">
             {useContext(QuestionsInfo).typeResults}
         </h1>
+    )
+}
+
+function AskQuestion() {
+    const questionsInfo = useContext(QuestionsInfo);
+    
+    const setCurrPage = questionsInfo.setCurrPage;
+    return (
+        <div id="ask-question-container">
+            <button id="ask-question" type="button" onClick={() => setCurrPage(Constants.POST_QUESTION_PAGE)}>Ask Question</button>
+        </div>
     )
 }
 
