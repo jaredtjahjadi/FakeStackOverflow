@@ -1,5 +1,3 @@
-/* Add CSS */
-
 /* Welcome Page */
 
 #welcome-options
@@ -43,10 +41,7 @@ html, body, #root, .fakeso
     height: 100%
 }
 
-body
-{
-    font-family: Arial;
-}
+body { font-family: Arial; }
 
 .body
 {
@@ -65,10 +60,7 @@ body
     top: 0;
 }
 
-#website-title
-{
-    text-align: center;
-}
+#website-title { text-align: center; }
 
 #search-bar
 {
@@ -96,24 +88,15 @@ body
     text-align: center;
 }
 
-#col-names > td:not(.active):hover {
-    background-color: lightgray;
-}
+#col-names > td:not(.active):hover { background-color: lightgray; }
 
-.active {
-    background-color: darkgray;
-}
+.active { background-color: darkgray; }
 
-#main
-{
-    display: block;
-}
+#main { display: block; }
 
-#questions-header-container {
-    border-bottom: dotted;
-}
+#questions-header-container { border-bottom: dotted; }
 
-#questions-header
+#questions-header, #nav-button-container
 {
     display: flex;
     justify-content: space-between;
@@ -148,7 +131,7 @@ body
 #question-filter {
     display: flex;
     justify-content: space-between;
-    margin-left: 5%;
+    margin: 0% 5%;
 }
 
 #num-questions
@@ -164,7 +147,6 @@ body
     height: 30%;
     border-collapse: collapse;
     justify-content: right;
-    margin-right: 10%;
 }
 
 #filters td
@@ -174,9 +156,18 @@ body
     cursor: pointer;
 }
 
-.active-filter {
-    background-color: gray;
+.active-filter { background-color: gray; }
+
+#prev-button, #next-button {
+    display: flex;
+    cursor: pointer;
+    border-style: solid;
+    border-radius: 10px;
+    padding: 5px;
+    margin: 2% 0%;
 }
+
+#prev-button:hover, #next-button:hover { background-color: lightgray; }
 
 /* QUESTIONS */
 
@@ -334,10 +325,7 @@ body
     margin-top: 2%;
 }
 
-#new-question-form, #new-answer-form
-{
-    margin: 0% 5%;
-}
+#new-question-form, #new-answer-form { margin: 0% 5%; }
 
 /* New Question page */
 .instructions {
@@ -365,7 +353,6 @@ body
     display: inline-block;
     color: red;
     margin-top: 20px;
-
 }
 
 .submit-button {
@@ -378,9 +365,7 @@ body
 }
 
 /* Tags page */
-#tags-page {
-    margin: 0% 5%;
-}
+#tags-page { margin: 0% 5%; }
 
 #tags-page-header {
     width: 100%;

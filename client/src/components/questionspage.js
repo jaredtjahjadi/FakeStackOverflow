@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import * as Constants from '../constants'
 import {QuestionsInfo} from './HomePage'
 import axios from 'axios'
+import NavButtonContainer from './NavButtonContainer';
 
 // Contains all of the content specifically associated with the questions page.
 
@@ -10,15 +11,16 @@ export default function QuestionsPage() {
         <>
             <div id="questions-header-container">
                 <div id="questions-header">
-                    <TypeResults />
+                    <h1 id="type-results-header">{useContext(QuestionsInfo).typeResults}</h1>
                     <AskQuestion />
                 </div>
                 <div id="question-filter">
-                    <NumQuestions />
+                <p id="num-questions">{useContext(QuestionsInfo).numQuestions} questions</p>
                     <Filters />
                 </div>
             </div>
             <Questions />
+            {useContext(QuestionsInfo).numQuestions > 5 && <NavButtonContainer />}
         </>
     )
 }
@@ -77,35 +79,22 @@ function Filters() {
     )
 }
 
-function NumQuestions() {
-    return (
-        <p id="num-questions">
-            {useContext(QuestionsInfo).numQuestions} questions
-        </p>
-    )
-}
-
 function Questions() {
 
     const currDisplayedQuestions = useContext(QuestionsInfo).currDisplayedQuestions;
     const currFilter = useContext(QuestionsInfo).currFilter;
 
-    if(currDisplayedQuestions.length === 0 && currFilter === Constants.SEARCH_FILTER)
-        return (
-            <div id="questions">
-                <h1 id="no-questions-found">No Questions Found</h1>
-            </div>
-        )
-
     return (
         <div id="questions">
-            {currDisplayedQuestions.map((q) => (<Question question={q} />))}
+            {(currDisplayedQuestions.length === 0 && currFilter === Constants.SEARCH_FILTER)
+                ? <h1 id="no-questions-found">No Questions Found</h1>
+                : currDisplayedQuestions.map((q) => (<Question question={q} />))
+            }
         </div>
     )
 }
 
 function Question({question}) {
-
     const questionsInfo = useContext(QuestionsInfo);
     const setCurrPage = questionsInfo.setCurrPage;
     const setDisplayedQuestion = questionsInfo.setDisplayedQuestion;
@@ -117,12 +106,8 @@ function Question({question}) {
 
     useEffect(() => {
             const getTags = async () => {
-                await axios.get('http://localhost:8000/tags', {
-                    params: question.tagIds
-                })
-                .then(res => {
-                    setTags(res.data)
-                })
+                await axios.get('http://localhost:8000/tags', { params: question.tagIds })
+                .then(res => {setTags(res.data)})
             }
             getTags();
         }, [question])
@@ -148,8 +133,8 @@ function Question({question}) {
                     {question.title} 
                 </div>
 
-                <div id={currTagsContainer} className='tags-container'> 
-                    {tags.map((t) => <div className='tags'><div>{t.name}</div></div>)}
+                <div id={currTagsContainer} className='tags-container'>
+                    {tags.map((t) => <div className='tags'>{t.name}</div>)}
                 </div>
             </div>
             
@@ -159,7 +144,6 @@ function Question({question}) {
 }
 
 export function QuestionDateMetadata(props) {
-
     let q = props.question;
 
     let time_now = new Date();
@@ -177,7 +161,7 @@ export function QuestionDateMetadata(props) {
 
     // Days ago
     else if(time_now - time_asked > 1000 * 60 * 60 * 24) {
-        return  (
+        return (
             <p className='time-since-asked'>
                 {q.askedBy + " asked " + time_asked.toLocaleString('en-US', { month: 'long' }) + " " + time_asked.getDate() + 
                     " at " + time_asked.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false})}
@@ -187,28 +171,14 @@ export function QuestionDateMetadata(props) {
 
     // Hours ago
     else if(time_now - time_asked > 1000 * 60 * 60) {
-        return (
-            <p className='time-since-asked'>
-                {q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000 * 60 * 60)) + " hours ago"}
-            </p>
-        )
+        return ( <p className='time-since-asked'>{q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000 * 60 * 60)) + " hours ago"}</p> )
     }
 
     // Minutes ago
     else if(time_now - time_asked > 1000 * 60) {
-        return ( 
-            <p className='time-since-asked'>
-                {q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000 * 60)) + " minutes ago"}
-            </p>
-        )
+        return ( <p className='time-since-asked'>{q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000 * 60)) + " minutes ago"}</p> )
     }
 
     // Seconds ago
-    else {
-        return (
-            <p className='time-since-asked'>
-                {q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000)) + " seconds ago"}
-            </p>
-        )
-    }
+    else { return ( <p className='time-since-asked'>{q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000)) + " seconds ago"}</p> ) }
 }

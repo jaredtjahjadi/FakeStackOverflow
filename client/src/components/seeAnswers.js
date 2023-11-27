@@ -3,6 +3,7 @@ import { QuestionsInfo } from './HomePage';
 import { AskQuestion } from './Body';
 import { QuestionDateMetadata } from './QuestionsPage';
 import * as Constants from '../constants';
+import NavButtonContainer from './NavButtonContainer';
 import axios from 'axios';
 
 export function SeeAnswers() {
@@ -43,6 +44,7 @@ export function SeeAnswers() {
             <div id='answer-question-container'>
                 <button id='answer-question' onClick={() => setCurrPage(Constants.POST_ANSWER_PAGE)}>Answer Question</button>
             </div>
+            <NavButtonContainer />
         </div>
     )
 }
