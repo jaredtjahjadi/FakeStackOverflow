@@ -193,6 +193,7 @@ body { font-family: Arial; }
 
 .title
 {
+    width: fit-content; /* div with "title" class only takes up as much content as text takes up */
     font-size: 150%;
     color: blue;
     cursor: pointer;

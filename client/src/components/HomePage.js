@@ -8,10 +8,13 @@ export const QuestionsInfo = createContext();
 export default function HomePage() {
   const [currPage, setCurrPage] = useState(Constants.QUESTIONS_PAGE);
   const [currFilter, setCurrFilter] = useState(Constants.NEWEST_FILTER);
+  const [allQuestions, setAllQuestions] = useState([]);
   const [currDisplayedQuestions, setDisplayedQuestions] = useState([]) // For Questions Page
-  const [numQuestions, setNumQuestions] = useState(currDisplayedQuestions.length);
+  const [numQuestions, setNumQuestions] = useState(allQuestions.length);
   const [typeResults, setTypeResults] = useState("All Questions");
   const [currDisplayedQuestion, setDisplayedQuestion] = useState([]) // SHOULD PROBABLY BE MOVED TO SEE ANSWERS INSTEAD
+  const [allAnswers, setAllAnswers] = useState([]);
+  const [currDisplayedAnswers, setDisplayedAnswers] = useState([]);
 
   /*
     By using useEffect, the GET request for questions will always be done after every rendering.
@@ -25,7 +28,8 @@ export default function HomePage() {
         await axios.get('http://localhost:8000/newestQuestions')
         .then(res => {
           const questions = res.data;
-          setDisplayedQuestions(questions);
+          setAllQuestions(questions);
+          setDisplayedQuestions(questions.slice(0, 5));
           setNumQuestions(questions.length)
         })
     }
@@ -34,7 +38,8 @@ export default function HomePage() {
       await axios.get('http://localhost:8000/activeQuestions')
         .then(res => {
           const questions = res.data;
-          setDisplayedQuestions(questions);
+          setAllQuestions(questions);
+          setDisplayedQuestions(questions.slice(0, 5));
           setNumQuestions(questions.length)
         })
     }
@@ -43,7 +48,8 @@ export default function HomePage() {
       await axios.get('http://localhost:8000/unansweredQuestions')
         .then(res => {
           const questions = res.data;
-          setDisplayedQuestions(questions);
+          setAllQuestions(questions);
+          setDisplayedQuestions(questions.slice(0, 5));
           setNumQuestions(questions.length)
         })
     }
@@ -73,6 +79,8 @@ export default function HomePage() {
             setCurrPage, 
             currFilter,
             setCurrFilter,
+            allQuestions,
+            setAllQuestions,
             currDisplayedQuestions,
             setDisplayedQuestions,
             numQuestions,
@@ -80,7 +88,11 @@ export default function HomePage() {
             typeResults,
             setTypeResults,
             currDisplayedQuestion,
-            setDisplayedQuestion
+            setDisplayedQuestion,
+            allAnswers,
+            setAllAnswers,
+            currDisplayedAnswers,
+            setDisplayedAnswers
           }
         }>
           <div id="header" className="header">

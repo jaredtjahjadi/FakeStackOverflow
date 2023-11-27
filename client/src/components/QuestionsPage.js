@@ -2,7 +2,8 @@ import React, { useContext, useEffect, useState } from 'react';
 import * as Constants from '../constants'
 import {QuestionsInfo} from './HomePage'
 import axios from 'axios'
-import NavButtonContainer from './NavButtonContainer';
+
+let questionChunkInd = 0;
 
 // Contains all of the content specifically associated with the questions page.
 
@@ -20,7 +21,7 @@ export default function QuestionsPage() {
                 </div>
             </div>
             <Questions />
-            {useContext(QuestionsInfo).numQuestions > 5 && <NavButtonContainer />}
+            {useContext(QuestionsInfo).numQuestions > 5 && <QuestionNav />}
         </>
     )
 }
@@ -51,16 +52,19 @@ function Filters() {
             <tbody>
                 <tr id="col-names">
                     <td id="Newest" onClick={() => {
+                        questionChunkInd = 0;
                         setCurrFilter(Constants.NEWEST_FILTER);
                         setTypeResults("All Questions");
                     }}>Newest</td>
 
                     <td id="Active" onClick={() => {
+                        questionChunkInd = 0;
                         setCurrFilter(Constants.ACTIVE_FILTER);
                         setTypeResults("All Questions");
                     }}>Active</td>
 
                     <td id="Unanswered" onClick={() => {
+                        questionChunkInd = 0;
                         setCurrFilter(Constants.UNANSWERED_FILTER);
                         setTypeResults("All Questions");
                     }}>Unanswered</td>
@@ -78,7 +82,7 @@ function Questions() {
         <div id="questions">
             {(currDisplayedQuestions.length === 0 && currFilter === Constants.SEARCH_FILTER)
                 ? <h1 id="no-questions-found">No Questions Found</h1>
-                : currDisplayedQuestions.map((q) => (<Question question={q} />))
+                : currDisplayedQuestions.map((q) => (<Question key={q.qid} question={q} />))
             }
         </div>
     )
@@ -124,7 +128,7 @@ function Question({question}) {
                 </div>
 
                 <div id={currTagsContainer} className='tags-container'>
-                    {tags.map((t) => <div className='tags'>{t.name}</div>)}
+                    {tags.map((t) => <div key={t.tid} className='tags'>{t.name}</div>)}
                 </div>
             </div>
             
@@ -169,4 +173,35 @@ export function QuestionDateMetadata(props) {
 
     // Seconds ago
     else return ( <p className='time-since-asked'>{q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000)) + " seconds ago"}</p> )
+}
+
+function QuestionNav() {
+    const questionsInfo = useContext(QuestionsInfo);
+    const allQuestions = questionsInfo.allQuestions;
+    const setDisplayedQuestions = questionsInfo.setDisplayedQuestions;
+    const questionChunks = splitArray(allQuestions);
+    
+    return (
+        <div id="nav-button-container">
+            <div id="prev-button" onClick={() => {
+                if(questionChunkInd > 0) {
+                    questionChunkInd--;
+                    setDisplayedQuestions(questionChunks[questionChunkInd]);
+                }
+            }}>◄ Prev</div>
+            <div id="next-button" onClick={() => {
+                if(questionChunkInd < questionChunks.length - 1) {
+                    questionChunkInd++;
+                    setDisplayedQuestions(questionChunks[questionChunkInd]);
+                }
+            }}>Next ►</div>
+        </div>
+    )
+}
+
+// Helper function to split array into chunks of five
+export function splitArray(arr) {
+    let splittedArray = [];
+    for(let i = 0; i < arr.length; i += 5) splittedArray.push(arr.slice(i, i + 5));
+    return splittedArray;
 }
