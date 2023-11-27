@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { QuestionsInfo } from './HomePage';
 import { AskQuestion } from './Body';
-import { QuestionDateMetadata } from './test';
+import { QuestionDateMetadata } from './QuestionsPage';
 import * as Constants from '../constants';
 import NavButtonContainer from './NavButtonContainer';
 import axios from 'axios';

@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import * as Constants from '../constants';
-import QuestionsPage from './test';
+import QuestionsPage from './QuestionsPage';
 import PostQuestionPage from './PostQuestionPage';
 import TagsPage from './TagsPage';
 import { SeeAnswers } from './SeeAnswers';
