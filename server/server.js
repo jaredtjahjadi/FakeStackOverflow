@@ -13,6 +13,7 @@ const bcrypt = require('bcrypt')
 const Question = require('./models/questions')
 const Tag = require('./models/tags')
 const Answer = require('./models/answers')
+const User = require('./models/users')
 
 const app = express();
 const port = 8000;
@@ -40,7 +41,39 @@ app.listen(port, () => {
 app.use(express.json())
 
 /*
+    User roles
+*/
+
+const USER = 'USER'
+const ADMIN = 'ADMIN'
+
+/*
     Define all routes that fake_so can communicate with the server by
+*/
+
+/*
+    Routes for the Welcome page
+*/
+
+app.post('/register', async (req, res) => {
+    const salt = await bcrypt.genSalt(10)
+    .then(async salt => {
+        return await bcrypt.hash(req.body.password, salt)
+    })
+    .then(async hash => {
+        const data = req.body
+        const user = new User({
+            username: data.username,
+            email: data.email,
+            passwordHash: hash,
+            role: USER
+        })
+        await user.save()
+    })
+})
+
+/*
+    Routes for the main fake_so page
 */
 
 app.get('/newestQuestions', (req, res) => {
