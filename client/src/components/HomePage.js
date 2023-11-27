@@ -1,10 +1,7 @@
 import { createContext, useEffect, useState } from 'react';
 import Body from './Body.js';
-import Model from '../models/model.js';
 import * as Constants from '../constants'
 import axios from 'axios'
-
-export const model = new Model(); // Create a singleton representing the model that all files will modify and query from.
 
 export const QuestionsInfo = createContext();
 

@@ -36,10 +36,7 @@
 
 /* Home Page */
 
-html, body, #root, .fakeso 
-{
-    height: 100%
-}
+html, body, #root, .fakeso { height: 100% }
 
 body { font-family: Arial; }
 

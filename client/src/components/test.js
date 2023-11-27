@@ -15,7 +15,7 @@ export default function QuestionsPage() {
                     <AskQuestion />
                 </div>
                 <div id="question-filter">
-                <p id="num-questions">{useContext(QuestionsInfo).numQuestions} questions</p>
+                    <p id="num-questions">{useContext(QuestionsInfo).numQuestions} questions</p>
                     <Filters />
                 </div>
             </div>
@@ -26,15 +26,6 @@ export default function QuestionsPage() {
 }
 
 // SUBCOMPONENTS
-
-function TypeResults() {
-
-    return (
-        <h1 id="type-results-header">
-            {useContext(QuestionsInfo).typeResults}
-        </h1>
-    )
-}
 
 function AskQuestion() {
     const questionsInfo = useContext(QuestionsInfo);
@@ -80,7 +71,6 @@ function Filters() {
 }
 
 function Questions() {
-
     const currDisplayedQuestions = useContext(QuestionsInfo).currDisplayedQuestions;
     const currFilter = useContext(QuestionsInfo).currFilter;
 
@@ -170,15 +160,13 @@ export function QuestionDateMetadata(props) {
     }
 
     // Hours ago
-    else if(time_now - time_asked > 1000 * 60 * 60) {
+    else if(time_now - time_asked > 1000 * 60 * 60)
         return ( <p className='time-since-asked'>{q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000 * 60 * 60)) + " hours ago"}</p> )
-    }
 
     // Minutes ago
-    else if(time_now - time_asked > 1000 * 60) {
+    else if(time_now - time_asked > 1000 * 60)
         return ( <p className='time-since-asked'>{q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000 * 60)) + " minutes ago"}</p> )
-    }
 
     // Seconds ago
-    else { return ( <p className='time-since-asked'>{q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000)) + " seconds ago"}</p> ) }
+    else return ( <p className='time-since-asked'>{q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000)) + " seconds ago"}</p> )
 }
