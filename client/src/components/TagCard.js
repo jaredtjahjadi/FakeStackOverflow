@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import * as Constants from '../constants';
-import { QuestionsInfo } from './fakestackoverflow';
+import { QuestionsInfo } from './HomePage';
 import axios from 'axios';
 
 export default function TagCard(props) {

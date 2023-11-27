@@ -17,3 +17,9 @@ export const UNANSWERED_FILTER = 'UNANSWERED_FILTER';
 export const SEARCH_FILTER = 'SEARCH_FILTER';
 
 export const SEE_ANSWERS_PAGE = 'SEE_ANSWERS_PAGE';
+
+export const SPLASH_PAGE = 'SPLASH_PAGE';
+
+export const LOGIN_PAGE = 'LOGIN_PAGE';
+
+export const REGISTER_PAGE = 'REGISTER_PAGE';

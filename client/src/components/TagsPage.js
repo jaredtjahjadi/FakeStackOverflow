@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AskQuestion } from './global';
+import { AskQuestion } from './Body';
 import TagCard from './TagCard';
 import axios from 'axios';
 

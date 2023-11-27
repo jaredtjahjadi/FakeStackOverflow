@@ -1,4 +1,43 @@
 /* Add CSS */
+
+/* Welcome Page */
+
+#welcome-options
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    text-align: center;
+    align-items: center;
+}
+
+.welcome-button
+{
+    background-color: lightgray;
+    color: black;
+    cursor: pointer;
+    font-size: larger;
+    margin: 10px;
+}
+
+.welcome-form
+{
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    justify-content: space-evenly;
+    align-items: center;
+
+}
+
+.welcome-input
+{
+    font-size: larger;
+
+}
+
+/* Home Page */
+
 html, body, #root, .fakeso 
 {
     height: 100%
