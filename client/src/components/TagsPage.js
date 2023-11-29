@@ -13,7 +13,7 @@ export default function TagsPage() {
         getTags();
     })
     const tagCards = [];
-    for(let tag of tags) tagCards.push(<TagCard tag={tag} />);
+    for(let tag of tags) tagCards.push(<TagCard key={tag.tid} tag={tag} />);
     const numTags = tags.length;
     return (
         <div id="tags-page">

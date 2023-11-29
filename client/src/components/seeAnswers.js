@@ -1,23 +1,33 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { QuestionsInfo } from './HomePage';
 import { AskQuestion } from './Body';
-import { QuestionDateMetadata } from './QuestionsPage';
+import { QuestionDateMetadata, splitArray } from './QuestionsPage';
 import * as Constants from '../constants';
 import axios from 'axios';
 
+let answerChunkInd = 0;
+
 export function SeeAnswers() {
+    console.log(answerChunkInd);
     const questionInfo = useContext(QuestionsInfo)
     const currDisplayedQuestion = questionInfo.currDisplayedQuestion;
     const setCurrPage = questionInfo.setCurrPage;
+    const answers = questionInfo.allAnswers;
+    const setAnswers = questionInfo.setAllAnswers;
+    const currDisplayedAnswers = questionInfo.currDisplayedAnswers;
+    const setDisplayedAnswers = questionInfo.setDisplayedAnswers;
 
     // Retrieves answers for current question from server
-    const [answers, setAnswers] = useState([]);
     useEffect(() => {
         let isMounted = true;
         const getAnswers = async() => {
             try {
                 const res = await axios.get(`http://localhost:8000/answers/${currDisplayedQuestion.qid}`)
-                if(isMounted) setAnswers(res.data);
+                if(isMounted) {
+                    setAnswers(res.data);
+                    setDisplayedAnswers(res.data.slice(0, 5));
+                    answerChunkInd = 0;
+                }
             } catch(error) { console.log(error) }
         }
         getAnswers();
@@ -39,10 +49,11 @@ export function SeeAnswers() {
                     <div id='asked-by'><QuestionDateMetadata question={currDisplayedQuestion} /></div>
                 </div>
             </div>
-            <div id='answers'>{answers.map((ans) => <Answer answer={ans} />)}</div>
+            <div id='answers'>{currDisplayedAnswers.map((ans) => <Answer key={ans.aid} answer={ans} />)}</div>
             <div id='answer-question-container'>
                 <button id='answer-question' onClick={() => setCurrPage(Constants.POST_ANSWER_PAGE)}>Answer Question</button>
             </div>
+            {answers.length > 5 && <AnswerNav ans={answers} setDisplayedAnswers={setDisplayedAnswers} />}
         </div>
     )
 }
@@ -112,4 +123,26 @@ function AnswerDateMetadata(props) {
 
     // Seconds ago
     else return <p>{a.ansBy + " answered " + Math.round((time_now - time_answered)/(1000)) + " seconds ago"}</p>
+}
+
+export function AnswerNav(props) {
+    const answerChunks = splitArray(props.ans);
+    const setDisplayedAnswers = props.setDisplayedAnswers;
+    
+    return (
+        <div id="nav-button-container">
+            <div id="prev-button" onClick={() => {
+                if(answerChunkInd > 0) {
+                    answerChunkInd--;
+                    setDisplayedAnswers(answerChunks[answerChunkInd]);
+                }
+            }}>◄ Prev</div>
+            <div id="next-button" onClick={() => {
+                if(answerChunkInd < answerChunks.length - 1) {
+                    answerChunkInd++;
+                    setDisplayedAnswers(answerChunks[answerChunkInd]);
+                }
+            }}>Next ►</div>
+        </div>
+    )
 }

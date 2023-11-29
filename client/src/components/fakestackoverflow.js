@@ -16,6 +16,14 @@ import HomePage from './HomePage.js';
   - el torino
 */
 
+/*
+  *** FOR TORIN ***
+
+  🐔👍
+
+  - bear
+*/
+
 // Tracks the current user's info
 export const UserInfo = createContext();
 
