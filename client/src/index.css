@@ -171,11 +171,19 @@ body { font-family: Arial; }
 .question-container
 {
     display: grid;
-    grid-template-columns: 15% 70% 15%;
+    grid-template-columns: 1.5% 13.5% 72.5% 15%;
     border-bottom: dotted;
     align-items: center;
     padding: 20px;
 }
+
+/* Voting */
+.votes, .upvote, .downvote {
+    margin: 0;
+}
+.upvote, .downvote { cursor: pointer; }
+.upvote:hover { color: blue; }
+.downvote:hover { color: red; }
 
 .interaction-stats
 {

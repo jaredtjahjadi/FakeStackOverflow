@@ -120,7 +120,8 @@ function handleSubmit(event) {
                 answers: [],
                 asked_by: questionUsername,
                 ask_date_time: currDate,
-                views: 0
+                views: 0,
+                votes: 0
             }
 
             await axios.post('http://localhost:8000/addQuestion', questionData)
@@ -130,7 +131,6 @@ function handleSubmit(event) {
     }
 
     addQuestion()
-    ///model.addQuestion(questionTitle, questionText, questionTags, questionUsername, currDate);
     event.preventDefault(); // Do not reload page after clicking submit button
     document.getElementById("new-question-form").reset(); // Clear form fields
     errMsg.innerHTML = "";

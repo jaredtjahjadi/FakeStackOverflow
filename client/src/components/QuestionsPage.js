@@ -108,6 +108,23 @@ function Question({question}) {
 
     return (
         <div className="question-container">
+            <p className="votes">
+                <p className="upvote" onClick={() => {
+                    const incVote = async() => {
+                        try { await axios.post('http://localhost:8000/incVote', question) }
+                        catch(error) { console.log(error) }
+                    }
+                    incVote();
+                }}>🡅</p>
+                {question.votes}
+                <p className="downvote" onClick={() => {
+                    const decVote = async() => {
+                        try { await axios.post('http://localhost:8000/decVote', question) }
+                        catch(error) { console.log(error) }
+                    }
+                    decVote();
+                }}>🡇</p>
+            </p>
             <p className='interaction-stats'>
                 {question.ansIds.length} answers
                 <br />
