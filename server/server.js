@@ -199,7 +199,6 @@ app.get('/searchResults', (req, res) => {
 })
 
 app.post('/addQuestion', (req, res) => {
-
     async function addQuestion() {
         try{
             const data = req.body
@@ -251,8 +250,10 @@ app.post('/postAnswer', (req, res) => {
     postAnswer();
 })
 
-app.post('/incVote', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { votes: 1}}) })
-app.post('/decVote', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { votes: -1}}) })
+app.post('/incQVote', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { votes: 1}}) })
+app.post('/decQVote', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { votes: -1}}) })
+app.post('/incAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: 1}}) })
+app.post('/decAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: -1}}) })
 app.post('/incrementView', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { views: 1}}) })
 
 /*

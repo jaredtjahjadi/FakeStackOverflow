@@ -30,47 +30,35 @@ export default function QuestionsPage() {
 
 function AskQuestion() {
     const questionsInfo = useContext(QuestionsInfo);
-    
     const setCurrPage = questionsInfo.setCurrPage;
-    return (
-        <div id="ask-question-container">
-            <button id="ask-question" type="button" onClick={() => setCurrPage(Constants.POST_QUESTION_PAGE)}>Ask Question</button>
-        </div>
-    )
+    return <div id="ask-question-container"><button id="ask-question" type="button" onClick={() => setCurrPage(Constants.POST_QUESTION_PAGE)}>Ask Question</button></div>
 }
 
 function Filters() {
     //NOTE: USE CURR FILTER TO CHANGE COLOR OF FILTER
-
-    const questionsInfo = useContext(QuestionsInfo);
-    
-    const setCurrFilter = questionsInfo.setCurrFilter;
-    const setTypeResults = questionsInfo.setTypeResults;
-
     return (
         <table id="filters" border="3">
             <tbody>
                 <tr id="col-names">
-                    <td id="Newest" onClick={() => {
-                        questionChunkInd = 0;
-                        setCurrFilter(Constants.NEWEST_FILTER);
-                        setTypeResults("All Questions");
-                    }}>Newest</td>
-
-                    <td id="Active" onClick={() => {
-                        questionChunkInd = 0;
-                        setCurrFilter(Constants.ACTIVE_FILTER);
-                        setTypeResults("All Questions");
-                    }}>Active</td>
-
-                    <td id="Unanswered" onClick={() => {
-                        questionChunkInd = 0;
-                        setCurrFilter(Constants.UNANSWERED_FILTER);
-                        setTypeResults("All Questions");
-                    }}>Unanswered</td>
+                    <Filter filterName={"Newest"} filter={Constants.NEWEST_FILTER} />
+                    <Filter filterName={"Active"} filter={Constants.ACTIVE_FILTER} />
+                    <Filter filterName={"Unanswered"} filter={Constants.UNANSWERED_FILTER} />
                 </tr>
             </tbody>
         </table>
+    )
+}
+
+function Filter(props) {
+    const questionsInfo = useContext(QuestionsInfo);
+    const setCurrFilter = questionsInfo.setCurrFilter;
+    const setTypeResults = questionsInfo.setTypeResults;
+    return (
+        <td id={props.filterName} onClick={() => {
+            questionChunkInd = 0;
+            setCurrFilter(props.filter);
+            setTypeResults("All Questions");
+        }}>{props.filterName}</td>
     )
 }
 
@@ -108,23 +96,23 @@ function Question({question}) {
 
     return (
         <div className="question-container">
-            <p className="votes">
+            <div className="votes">
                 <p className="upvote" onClick={() => {
-                    const incVote = async() => {
-                        try { await axios.post('http://localhost:8000/incVote', question) }
+                    const incQVote = async() => {
+                        try { await axios.post('http://localhost:8000/incQVote', question) }
                         catch(error) { console.log(error) }
                     }
-                    incVote();
+                    incQVote();
                 }}>🡅</p>
                 {question.votes}
                 <p className="downvote" onClick={() => {
-                    const decVote = async() => {
-                        try { await axios.post('http://localhost:8000/decVote', question) }
+                    const decQVote = async() => {
+                        try { await axios.post('http://localhost:8000/decQVote', question) }
                         catch(error) { console.log(error) }
                     }
-                    decVote();
+                    decQVote();
                 }}>🡇</p>
-            </p>
+            </div>
             <p className='interaction-stats'>
                 {question.ansIds.length} answers
                 <br />
@@ -144,11 +132,8 @@ function Question({question}) {
                     {question.title} 
                 </div>
 
-                <div id={currTagsContainer} className='tags-container'>
-                    {tags.map((t) => <div key={t.tid} className='tags'>{t.name}</div>)}
-                </div>
+                <div id={currTagsContainer} className='tags-container'>{tags.map((t) => <div key={t.tid} className='tags'>{t.name}</div>)}</div>
             </div>
-            
             <QuestionDateMetadata question={question} />
         </div>
     )
@@ -156,40 +141,24 @@ function Question({question}) {
 
 export function QuestionDateMetadata(props) {
     let q = props.question;
-
     let time_now = new Date();
     let time_asked = new Date(q.askDate);
+    const time_ago = time_now - time_asked;
+    const minutes_ago = 1000 * 60;
+    const hours_ago = minutes_ago * 60;
+    const days_ago = hours_ago * 24;
+    const years_ago = days_ago * 365;
+    let ask_time = "";
+    
+    if(time_ago > years_ago) ask_time = q.askedBy + " asked " + time_asked.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: false});
+    else if(time_ago > days_ago) ask_time = q.askedBy + " asked " + time_asked.toLocaleString('en-US', { month: 'long' }) + " " + time_asked.getDate() +
+        " at " + time_asked.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false});
+    else if(time_ago > hours_ago) ask_time = q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000 * 60 * 60)) + " hours ago";
+    else if(time_ago > minutes_ago) ask_time = q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000 * 60)) + " minutes ago";
+    else ask_time = q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000)) + " seconds ago";
 
-    // Years ago
-    if(time_now - time_asked > 1000 * 60 * 60 * 24 * 365) {
-        return (
-            <p className='time-since-asked'>
-                {q.askedBy + " asked " + time_asked.toLocaleString('en-US', { month: 'long', day: 'numeric', 
-                    year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false})}
-            </p>
-        )
-    }
-
-    // Days ago
-    else if(time_now - time_asked > 1000 * 60 * 60 * 24) {
-        return (
-            <p className='time-since-asked'>
-                {q.askedBy + " asked " + time_asked.toLocaleString('en-US', { month: 'long' }) + " " + time_asked.getDate() + 
-                    " at " + time_asked.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false})}
-            </p>
-        )
-    }
-
-    // Hours ago
-    else if(time_now - time_asked > 1000 * 60 * 60)
-        return ( <p className='time-since-asked'>{q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000 * 60 * 60)) + " hours ago"}</p> )
-
-    // Minutes ago
-    else if(time_now - time_asked > 1000 * 60)
-        return ( <p className='time-since-asked'>{q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000 * 60)) + " minutes ago"}</p> )
-
-    // Seconds ago
-    else return ( <p className='time-since-asked'>{q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000)) + " seconds ago"}</p> )
+    return ( <p className='time-since-asked'>{ask_time}</p> )
 }
 
 function QuestionNav() {
@@ -200,18 +169,24 @@ function QuestionNav() {
     
     return (
         <div id="nav-button-container">
-            <div id="prev-button" onClick={() => {
-                if(questionChunkInd > 0) {
-                    questionChunkInd--;
-                    setDisplayedQuestions(questionChunks[questionChunkInd]);
-                }
-            }}>◄ Prev</div>
-            <div id="next-button" onClick={() => {
-                if(questionChunkInd < questionChunks.length - 1) {
-                    questionChunkInd++;
-                    setDisplayedQuestions(questionChunks[questionChunkInd]);
-                }
-            }}>Next ►</div>
+            {questionChunkInd !== 0 && <Button id={"prev-button"} setDisplayedQuestions={setDisplayedQuestions} questionChunks={questionChunks} /> }
+            {questionChunkInd === 0 && <div />}
+            {questionChunkInd !== (questionChunks.length - 1) && <Button id={"next-button"} setDisplayedQuestions={setDisplayedQuestions} questionChunks={questionChunks} />}
+        </div>
+    )
+}
+
+function Button(props) {
+    const setDisplayedQuestions = props.setDisplayedQuestions;
+    const questionChunks = props.questionChunks;
+    return (
+        <div id={props.id} onClick={() => {
+            if(props.id === "prev-button" && questionChunkInd > 0) questionChunkInd--;
+            if(props.id === "next-button" && questionChunkInd < questionChunks.length - 1) questionChunkInd++;
+            setDisplayedQuestions(questionChunks[questionChunkInd]);
+        }}>
+            {props.id === "prev-button" && "◄ Prev"}
+            {props.id === "next-button" && "Next ►"}
         </div>
     )
 }

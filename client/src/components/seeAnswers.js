@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, Fragment } from 'react';
 import { QuestionsInfo } from './HomePage';
 import { AskQuestion } from './Body';
 import { QuestionDateMetadata, splitArray } from './QuestionsPage';
@@ -8,7 +8,6 @@ import axios from 'axios';
 let answerChunkInd = 0;
 
 export function SeeAnswers() {
-    console.log(answerChunkInd);
     const questionInfo = useContext(QuestionsInfo)
     const currDisplayedQuestion = questionInfo.currDisplayedQuestion;
     const setCurrPage = questionInfo.setCurrPage;
@@ -61,6 +60,23 @@ export function SeeAnswers() {
 function Answer({answer}) {
     return (
         <div id={answer.aid} className='answer-container'>
+            <div className="votes">
+                <p className="upvote" onClick={() => {
+                    const incQVote = async() => {
+                        try { await axios.post('http://localhost:8000/incAVote', answer) }
+                        catch(error) { console.log(error) }
+                    }
+                    incQVote();
+                }}>🡅</p>
+                {answer.votes}
+                <p className="downvote" onClick={() => {
+                    const decQVote = async() => {
+                        try { await axios.post('http://localhost:8000/decAVote', answer) }
+                        catch(error) { console.log(error) }
+                    }
+                    decQVote();
+                }}>🡇</p>
+            </div>
             <div className='answer-text'><Text text={answer.text} /></div>
             <div className='answer-metadata'><AnswerDateMetadata answer={answer}/></div>
         </div>
@@ -75,8 +91,8 @@ export function Text(props) {
 
     for(let i = 0; i < tokens.length; i++) {
         let currToken = tokens[i];
-        if(regex.test(currToken)) tokens[i] = <Hyperlink token={tokens[i]}/>
-        else tokens[i] = <>{tokens[i]}</>
+        if(regex.test(currToken)) tokens[i] = <Hyperlink key={i} token={tokens[i]}/>
+        else tokens[i] = <Fragment key={i}>{tokens[i]}</Fragment>
     }
 
     return <p>{tokens}</p>
@@ -93,36 +109,23 @@ function Hyperlink(props) {
 }
 
 function AnswerDateMetadata(props) {
-    let a = props.answer;
-    let time_now = new Date();
-    let time_answered = new Date(a.ansDate);
-
-    // Years ago
-    if(time_now - time_answered > 1000 * 60 * 60 * 24 * 365)
-        return (
-            <p>
-                {a.ansBy + " answered " + time_answered.toLocaleString('en-US', { month: 'long', day: 'numeric', 
-                    year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false})}
-            </p>
-        )
-
-    // Days ago
-    else if(time_now - time_answered > 1000 * 60 * 60 * 24)
-        return (
-            <p>
-                {a.ansBy + " answered " + time_answered.toLocaleString('en-US', { month: 'long' }) + " " + time_answered.getDate() + 
-                    " at " + time_answered.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false})}
-            </p>
-        )
-
-    // Hours ago
-    else if(time_now - time_answered > 1000 * 60 * 60) return <p>{a.ansBy + " answered " + Math.round((time_now - time_answered)/(1000 * 60 * 60)) + " hours ago"}</p>
-
-    // Minutes ago
-    else if(time_now - time_answered > 1000 * 60) return <p>{a.ansBy + " answered " + Math.round((time_now - time_answered)/(1000 * 60)) + " minutes ago"}</p>
-
-    // Seconds ago
-    else return <p>{a.ansBy + " answered " + Math.round((time_now - time_answered)/(1000)) + " seconds ago"}</p>
+    const a = props.answer;
+    const time_now = new Date();
+    const time_answered = new Date(a.ansDate);
+    const time_ago = time_now - time_answered;
+    const minutes_ago = 1000 * 60;
+    const hours_ago = minutes_ago * 60;
+    const days_ago = hours_ago * 24;
+    const years_ago = days_ago * 365;
+    let ans_time = "";
+    if(time_ago > years_ago) ans_time = a.ansBy + " answered " + time_answered.toLocaleString('en-US', { month: 'long', day: 'numeric', 
+        year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false});
+    else if(time_ago > days_ago) ans_time = a.ansBy + " answered " + time_answered.toLocaleString('en-US', { month: 'long' }) + " " + time_answered.getDate() + 
+        " at " + time_answered.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false});
+    else if(time_ago > hours_ago) ans_time = a.ansBy + " answered " + Math.round((time_now - time_answered)/(1000 * 60 * 60)) + " hours ago";
+    else if(time_ago > minutes_ago) ans_time = a.ansBy + " answered " + Math.round((time_now - time_answered)/(1000 * 60)) + " minutes ago";
+    else ans_time = a.ansBy + " answered " + Math.round((time_now - time_answered)/(1000)) + " seconds ago";
+    return <p>{ans_time}</p>
 }
 
 export function AnswerNav(props) {
