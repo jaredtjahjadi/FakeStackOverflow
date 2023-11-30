@@ -1,7 +1,8 @@
 import * as Constants from '../constants'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios'
 import { QuestionsInfo } from './HomePage';
+import { invalidForm } from './PostQuestionPage';
 
 /*
     This is the first page the user will see when accessing the website.
@@ -62,23 +63,28 @@ function SplashPage({setCurrPage}) {
 }
 
 function Login({setCurrPage}) {
-    // const [loginFormData, setLoginFormData] = useState({email: "", password: ""})
+    const [email, setEmail] = useState("")
+    const [emailError, setEmailError] = useState("")
+    const [password, setPassword] = useState("")
+    const [passwordError, setPasswordError] = useState("")
 
-    // const handleLogin = (event) => {
-    //     // STILL IN PROGRESS
-    //     event.preventDefault()
-    // }
+    const handleLogin = (event) => {
+        // STILL IN PROGRESS
+        event.preventDefault()
+
+
+    }
 
     return(
         <form className="welcome-form">
             <div>
                 <label htmlFor='email' className='welcome-input'>Email: </label>
-                <input type='text' id='email'></input>
+                <input type='text' id='email' onChange={(email) => setEmail(email)}></input>
             </div>
             <br></br>
             <div>
                 <label htmlFor='password' className='welcome-input'>Password: </label>
-                <input type='password' id='password'></input>
+                <input type='password' id='password' onChange={(password) => setEmail(password)}></input>
             </div>
             <br></br>
             <div>
@@ -95,45 +101,69 @@ function Login({setCurrPage}) {
 
 function Register({setCurrPage}) {
 
+    const [username, setUsername] = useState("")
+    const [usernameError, setUsernameError] = useState("")
+    const [email, setEmail] = useState("")
+    const [emailError, setEmailError] = useState("")
+    const [password, setPassword] = useState("")
+    const [passwordError, setPasswordError] = useState("")
+    const [passwordVerification, setPasswordVerification] = useState("")
+    const [passwordVerifError, setPasswordVerifError] = useState("")
+
     const handleRegister = (event) => {
         event.preventDefault();
 
-        let errMsg = document.getElementById("error-message")
-
-        let username = event.target.username.value.trim();
-        let email = event.target.email.value.trim();
-        let password = event.target.password.value.trim();
-        let password_verification = event.target.password_verification.value.trim();
-
-        // Email verification (no two users can have the same email, should be a valid form)
-        document.getElementById("email").appendChild(errMsg);
-        
         /*
             Regex for a valid email is taken from this source:
             https://www.regular-expressions.info/email.html
         */
         const emailRegex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
+        const passwordRegex = new RegExp(username + '|' + email.substr(0, email.indexOf('@')), "gi")
 
+        // Email should have a correct format.
         if(!emailRegex.test(email)) {
-            //IN PROGRESS
+            setEmailError("Invalid email.")
+            return
         }
+        else
+            setEmailError("")
 
-        const addQuestion = async () => {
-            try {
-                const userData = {
-                    username: username,
-                    email: email,
-                    password: password,
-                }
-    
-                await axios.post('http://localhost:8000/register', userData)
-            } catch (error) {
-                console.log(error)
+        // The typed password should not contain the username or the email id.
+        if(passwordRegex.test(password)) {
+            setPasswordError("The password must not contain the username nor the email id.")
+            return
+        }
+        else
+            setPasswordError("")
+
+        // The password verification must match the password.
+        if(password != passwordVerification) {
+            setPasswordVerifError("The password verification does not match the typed password.")
+            return
+        }
+        else
+            setPasswordVerifError("")
+
+        const registerUser = async () => {
+            const userData = {
+                username: username,
+                email: email,
+                password: password,
             }
+
+            await axios.post('http://localhost:8000/register', userData)
         }
     
-        addQuestion()
-            .then(setCurrPage(Constants.LOGIN_PAGE))
+        registerUser()
+            .then(() => {
+                setCurrPage(Constants.LOGIN_PAGE)
+            })
+            .catch(error => {
+                if(!error.response)
+                    console.log("Server is down. Try again later.")
+                else
+                    setEmailError("Email is already associated with an existing user.")
+            })
     }
 
     /*
@@ -144,23 +174,26 @@ function Register({setCurrPage}) {
         <form className="welcome-form" onSubmit={handleRegister}>
             <div>
                 <label htmlFor='email' className='welcome-input'>Username: </label>
-                <input type='text' id='username'></input>
+                <input type='text' id='username' onChange={(event) => setUsername(event.target.value)}></input>
+                <div>{usernameError}</div>
             </div>
-            <div id="error-message"/>
             <br></br>
-            <div>
+            <div id='email-form'>
                 <label htmlFor='email' className='welcome-input'>Email: </label>
-                <input type='text' id='email'></input>
+                <input type='text' id='email' onChange={(event) => setEmail(event.target.value)}></input>
+                <div>{emailError}</div>
             </div>
             <br></br>
-            <div>
+            <div id='password-form'>
                 <label htmlFor='password' className='welcome-input'>Password: </label>
-                <input type='password' id='password'></input>
+                <input type='password' id='password' onChange={(event) => setPassword(event.target.value)}></input>
+                <div>{passwordError}</div>
             </div>
             <br></br>
-            <div>
+            <div id='password-verification-form'>
                 <label htmlFor='password_verification' className='welcome-input'>Verify Password: </label>
-                <input type='password' id='password_verification'></input>
+                <input type='password' id='password_verification' onChange={(event) => setPasswordVerification(event.target.value)}></input>
+                <div>{passwordVerifError}</div>
             </div>
             <br></br>
             <div>

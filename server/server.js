@@ -56,20 +56,29 @@ const ADMIN = 'ADMIN'
 */
 
 app.post('/register', async (req, res) => {
-    const salt = await bcrypt.genSalt(10)
-    .then(async salt => {
-        return await bcrypt.hash(req.body.password, salt)
-    })
-    .then(async hash => {
-        const data = req.body
-        const user = new User({
-            username: data.username,
-            email: data.email,
-            passwordHash: hash,
-            role: USER
+    User.find({email: req.body.email}).exec()
+        .then(async email => {
+            if(email.length > 0)
+                return res.status(400).send({
+                    message: "Email is already associated with an existing account."
+                })
+            else {
+                const salt = await bcrypt.genSalt(10)
+                .then(async salt => {
+                    return await bcrypt.hash(req.body.password, salt)
+                })
+                .then(async hash => {
+                    const data = req.body
+                    const user = new User({
+                        username: data.username,
+                        email: data.email,
+                        passwordHash: hash,
+                        role: USER
+                    })
+                    user.save()
+                })
+            }
         })
-        await user.save()
-    })
 })
 
 /*
