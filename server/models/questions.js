@@ -11,7 +11,8 @@ const questionSchema = new Schema({
     answers: [{type: Schema.Types.ObjectId, ref: 'Answer'}],
     asked_by: {type: String, default: 'Anonymous'},
     ask_date_time: {type: Date, default: new Date()},
-    views: {type: Number, default: 0}
+    views: {type: Number, default: 0},
+    votes: {type: Number, default: 0}
 })
 
 questionSchema.virtual('url').get(function() {

@@ -7,7 +7,8 @@ var Schema = mongoose.Schema;
 const answerSchema = new Schema({
     text: {type: String, required: true},
     ans_by: {type: String, required: true},
-    ans_date_time: {type: Date, default: new Date()}
+    ans_date_time: {type: Date, default: new Date()},
+    votes: {type: Number, default: 0}
 })
 
 const Answer = mongoose.model('Answers', answerSchema)
