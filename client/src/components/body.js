@@ -6,6 +6,7 @@ import TagsPage from './TagsPage';
 import { SeeAnswers } from './SeeAnswers';
 import { QuestionsInfo } from './HomePage';
 import PostAnswerPage from './PostAnswerPage';
+import axios from 'axios'
 
 export default function Body() {
 
@@ -54,6 +55,7 @@ export function Menu() {
     
     const currPage = questionsInfo.currPage;
     const setCurrPage = questionsInfo.setCurrPage;
+    const setLoggedIn = questionsInfo.setLoggedIn
 
     return (
         <div id="menu" className="column">
@@ -73,6 +75,15 @@ export function Menu() {
                 onClick={() => setCurrPage(Constants.TAGS_PAGE)}
             >
                 Tags
+            </div>
+            <div
+                className={currPage === Constants.TAGS_PAGE ? "active" : undefined}
+                onClick={async () => {
+                    await axios.post('http://localhost:8000/logout')
+                    setLoggedIn(false)
+                }}
+            >
+                Logout
             </div>
         </div>
     )

@@ -5,7 +5,7 @@ import axios from 'axios'
 
 export const QuestionsInfo = createContext();
 
-export default function HomePage() {
+export default function HomePage({setLoggedIn}) {
   const [currPage, setCurrPage] = useState(Constants.QUESTIONS_PAGE);
   const [currFilter, setCurrFilter] = useState(Constants.NEWEST_FILTER);
   const [allQuestions, setAllQuestions] = useState([]);
@@ -15,12 +15,10 @@ export default function HomePage() {
   const [currDisplayedQuestion, setDisplayedQuestion] = useState([]) // SHOULD PROBABLY BE MOVED TO SEE ANSWERS INSTEAD
   const [allAnswers, setAllAnswers] = useState([]);
   const [currDisplayedAnswers, setDisplayedAnswers] = useState([]);
+  const [username, setUsername] = useState("");
   
-  /*
-    By using useEffect, the GET request for questions will always be done after every rendering.
-    So, since it's initially set to an empty array, it'll render no questions, but the effect
-    will go through, rendering the newest questions last :) - Torin
-  */
+  //This useEffect is done to conditionally render specific questions based on the current filter.
+
   useEffect(() => {
 
     // Define the requests to make based on the current filter to be applied
@@ -71,6 +69,20 @@ export default function HomePage() {
     }
   }, [currFilter])
 
+  // This useEffect is done to dynamically fetch and render the user's username
+
+  useEffect(() => {
+
+    const getUsername = async () => {
+        await axios.get('http://localhost:8000/username')
+        .then(res => {
+          setUsername(res.data)
+        })
+    }
+
+    getUsername()
+  }, [])
+
   return (
     <>
         <QuestionsInfo.Provider value = {
@@ -92,11 +104,12 @@ export default function HomePage() {
             allAnswers,
             setAllAnswers,
             currDisplayedAnswers,
-            setDisplayedAnswers
+            setDisplayedAnswers,
+            setLoggedIn
           }
         }>
           <div id="header" className="header">
-            <h2 id="user-link">{}</h2>
+            <h2 id="username">{username}</h2>
             <h1 id="website-title">Fake Stack Overflow</h1>
             <SearchBar />
           </div>
