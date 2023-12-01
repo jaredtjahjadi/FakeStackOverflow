@@ -28,7 +28,7 @@ import HomePage from './HomePage.js';
 export const UserInfo = createContext();
 
 export default function FakeStackOverflow() {
-  const [isLoggedIn, setLoggedIn] = useState(false)
+  const [isLoggedIn, setLoggedIn] = useState(true)
 
   switch(isLoggedIn) {
     case false:

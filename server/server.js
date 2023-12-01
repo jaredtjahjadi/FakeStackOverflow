@@ -208,7 +208,6 @@ app.get('/searchResults', (req, res) => {
 })
 
 app.post('/addQuestion', (req, res) => {
-
     async function addQuestion() {
         try{
             const data = req.body
@@ -260,10 +259,11 @@ app.post('/postAnswer', (req, res) => {
     postAnswer();
 })
 
-app.post('/incrementView', async(req, res) => {
-    // console.log(req.body)
-    await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { views: 1}})
-})
+app.post('/incQVote', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { votes: 1}}) })
+app.post('/decQVote', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { votes: -1}}) })
+app.post('/incAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: 1}}) })
+app.post('/decAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: -1}}) })
+app.post('/incrementView', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { views: 1}}) })
 
 /*
     This will now be the format of all questions sent from the server to the client.
@@ -285,7 +285,8 @@ function formatQuestions(questions) {
             askedBy: q.asked_by,
             askDate: q.ask_date_time,
             ansIds: q.answers,
-            views: q.views
+            views: q.views,
+            votes: q.votes
         }
     }
 
@@ -299,7 +300,8 @@ function formatAnswers(answers) {
             aid: a._id,
             text: a.text,
             ansBy: a.ans_by,
-            ansDate: a.ans_date_time
+            ansDate: a.ans_date_time,
+            votes: a.votes
         }
     }
     return answers;
