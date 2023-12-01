@@ -30,7 +30,6 @@ export const UserInfo = createContext();
 
 export default function FakeStackOverflow() {
   const [isLoggedIn, setLoggedIn] = useState(false)
-  //const [username, setUsername] = useState("")
 
   axios.defaults.withCredentials = true;
   /*
@@ -40,10 +39,7 @@ export default function FakeStackOverflow() {
   useEffect(() => {
     const verifyAuth = async () => {
       await axios.get('http://localhost:8000/')
-        .then(res => {
-          setLoggedIn(true)
-          console.log(res.data)
-        })
+        .then(() => setLoggedIn(true))
         .catch(error => {
           if(!error.response)
             console.log("ERROR")
@@ -59,7 +55,7 @@ export default function FakeStackOverflow() {
       return <WelcomePage setLoggedIn={setLoggedIn}/>
 
     case true:
-      return <HomePage />
+      return <HomePage setLoggedIn={setLoggedIn}/>
 
     default:
       console.log("The state of the user is not defined!")
