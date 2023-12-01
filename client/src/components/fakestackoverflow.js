@@ -30,15 +30,16 @@ export const UserInfo = createContext();
 
 export default function FakeStackOverflow() {
   const [isLoggedIn, setLoggedIn] = useState(false)
-  const [username, setUsername] = useState("")
+  //const [username, setUsername] = useState("")
 
+  axios.defaults.withCredentials = true;
   /*
     Check the session to see if the session is valid. If it isn't, then direct to the Login Page.
     Else, direct them to their personalized Home Page.
   */
   useEffect(() => {
     const verifyAuth = async () => {
-      const isAuthorized = await axios.get('http://localhost:8000/a', {withCredentials: true})
+      await axios.get('http://localhost:8000/')
         .then(res => {
           setLoggedIn(true)
           console.log(res.data)
@@ -46,6 +47,7 @@ export default function FakeStackOverflow() {
         .catch(error => {
           if(!error.response)
             console.log("ERROR")
+          console.log(error)
         })
     }
 

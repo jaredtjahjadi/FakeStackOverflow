@@ -77,7 +77,6 @@ function Login({setCurrPage, setLoggedIn}) {
             return res
         }
     
-        
         loginUser()
             .then(() => {
                 setLoggedIn(true)

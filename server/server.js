@@ -22,11 +22,12 @@ const port = 8000;
 const secret = process.argv[2];
 
 app.use(cors({
+    origin: 'http://localhost:3000',
     credentials: true
 }))
 app.use(express.json())
 app.use(session({
-    secret: `${secret}`,
+    secret: `howtf`,
     cookie: {},
     resave: false,
     saveUninitialized: false,
@@ -67,13 +68,12 @@ const ADMIN = 'ADMIN'
     Routes for the Welcome page
 */
 
-app.get('/a', (req,res) => {
+app.get('/', (req,res) => {
 
-    console.log(req.session)
     // Session for the user still exists
-    if(req.session.username)
+    if(req.session.email)
         return res.status(200).send({
-            username: req.session.username
+            email: req.session.email
         })
 
     // Session expired
@@ -100,33 +100,31 @@ app.post('/register', async (req, res) => {
                         role: USER
                     })
                     user.save()
-                    return res.status(200).send("Success")
+                    return res.status(200).send()
                 })
-
-                req.session.username = req.body.username.trim()
-                console.log(req.session.username)
             }
         })
 })
 
 app.post('/login', async (req, res) => {
     // Email must be registered with a user.
-    const sameEmail = await User.find({email: req.body.email}).exec()
-    if(sameEmail.length < 0) {
-        return res.status(400).send({
+    const user = await User.findOne({email: req.body.email}).exec()
+    if(user.length == 0) {
+        return res.status(403).send({
             message: "The given email is not registered with a user."
         })
     }
 
     // Password must be correct
-    const hashedPassword = await hashPassword(req.body.password)
-    const samePassword = await User.find({passwordHash: hashedPassword}).select('passwordHash').exec()
-    if(hashedPassword === samePassword) {
-        return res.status(400).send({
+    const verdict = await bcrypt.compare(req.body.password, user.passwordHash)
+    console.log(verdict)
+    if(!verdict) {
+        return res.status(403).send({
             message: "The password is incorrect."
         })
     }
 
+    req.session.email = req.body.email.trim()
     return res.status(200).send()
 })
 
