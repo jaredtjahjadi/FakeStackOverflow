@@ -9,6 +9,8 @@
 const express = require('express')
 const cors = require('cors')
 const bcrypt = require('bcrypt')
+const session = require('express-session')
+const MongoStore = require('connect-mongo')
 
 const Question = require('./models/questions')
 const Tag = require('./models/tags')
@@ -17,9 +19,19 @@ const User = require('./models/users')
 
 const app = express();
 const port = 8000;
+const secret = process.argv[2];
 
-app.use(cors())
+app.use(cors({
+    credentials: true
+}))
 app.use(express.json())
+app.use(session({
+    secret: `${secret}`,
+    cookie: {},
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: 'mongodb://127.0.0.1:27017/fake_so'})
+}))
 
 // Import the mongoose module
 const mongoose = require('mongoose');
@@ -55,18 +67,30 @@ const ADMIN = 'ADMIN'
     Routes for the Welcome page
 */
 
+app.get('/a', (req,res) => {
+
+    console.log(req.session)
+    // Session for the user still exists
+    if(req.session.username)
+        return res.status(200).send({
+            username: req.session.username
+        })
+
+    // Session expired
+    else
+        return res.status(401).send()
+    
+})
+
 app.post('/register', async (req, res) => {
     User.find({email: req.body.email}).exec()
-        .then(async email => {
-            if(email.length > 0)
+        .then(async users => {
+            if(users.length > 0)
                 return res.status(400).send({
                     message: "Email is already associated with an existing account."
                 })
             else {
-                const salt = await bcrypt.genSalt(10)
-                .then(async salt => {
-                    return await bcrypt.hash(req.body.password, salt)
-                })
+                hashPassword(req.body.password)
                 .then(async hash => {
                     const data = req.body
                     const user = new User({
@@ -76,9 +100,34 @@ app.post('/register', async (req, res) => {
                         role: USER
                     })
                     user.save()
+                    return res.status(200).send("Success")
                 })
+
+                req.session.username = req.body.username.trim()
+                console.log(req.session.username)
             }
         })
+})
+
+app.post('/login', async (req, res) => {
+    // Email must be registered with a user.
+    const sameEmail = await User.find({email: req.body.email}).exec()
+    if(sameEmail.length < 0) {
+        return res.status(400).send({
+            message: "The given email is not registered with a user."
+        })
+    }
+
+    // Password must be correct
+    const hashedPassword = await hashPassword(req.body.password)
+    const samePassword = await User.find({passwordHash: hashedPassword}).select('passwordHash').exec()
+    if(hashedPassword === samePassword) {
+        return res.status(400).send({
+            message: "The password is incorrect."
+        })
+    }
+
+    return res.status(200).send()
 })
 
 /*
@@ -264,6 +313,17 @@ app.post('/decQVote', async(req, res) => { await Question.findByIdAndUpdate({_id
 app.post('/incAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: 1}}) })
 app.post('/decAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: -1}}) })
 app.post('/incrementView', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { views: 1}}) })
+
+/*
+    HELPER FUNCTIONS
+*/
+
+async function hashPassword(password) {
+    return bcrypt.genSalt(10)
+        .then(async salt => {
+            return await bcrypt.hash(password, salt)
+        })
+}
 
 /*
     This will now be the format of all questions sent from the server to the client.

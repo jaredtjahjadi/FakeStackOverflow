@@ -1,6 +1,7 @@
-import { createContext, useState } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import WelcomePage from './WelcomePage.js';
 import HomePage from './HomePage.js';
+import axios from 'axios'
 
 /*
   *** FOR JARED ***
@@ -28,11 +29,32 @@ import HomePage from './HomePage.js';
 export const UserInfo = createContext();
 
 export default function FakeStackOverflow() {
-  const [isLoggedIn, setLoggedIn] = useState(true)
+  const [isLoggedIn, setLoggedIn] = useState(false)
+  const [username, setUsername] = useState("")
+
+  /*
+    Check the session to see if the session is valid. If it isn't, then direct to the Login Page.
+    Else, direct them to their personalized Home Page.
+  */
+  useEffect(() => {
+    const verifyAuth = async () => {
+      const isAuthorized = await axios.get('http://localhost:8000/a', {withCredentials: true})
+        .then(res => {
+          setLoggedIn(true)
+          console.log(res.data)
+        })
+        .catch(error => {
+          if(!error.response)
+            console.log("ERROR")
+        })
+    }
+
+    verifyAuth()
+  }, [])
 
   switch(isLoggedIn) {
     case false:
-      return <WelcomePage />
+      return <WelcomePage setLoggedIn={setLoggedIn}/>
 
     case true:
       return <HomePage />

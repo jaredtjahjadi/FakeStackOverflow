@@ -1,8 +1,6 @@
 import * as Constants from '../constants'
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios'
-import { QuestionsInfo } from './HomePage';
-import { invalidForm } from './PostQuestionPage';
 
 /*
     This is the first page the user will see when accessing the website.
@@ -11,7 +9,7 @@ import { invalidForm } from './PostQuestionPage';
     is the actual website's content.
 */
 
-export default function WelcomePage() {
+export default function WelcomePage({setLoggedIn}) {
 
     const [currPage, setCurrPage] = useState(Constants.SPLASH_PAGE)
 
@@ -23,7 +21,7 @@ export default function WelcomePage() {
             break;
 
         case Constants.LOGIN_PAGE:
-            content = <Login setCurrPage={setCurrPage}/>;
+            content = <Login setCurrPage={setCurrPage} setLoggedIn={setLoggedIn}/>;
             break;
 
         case Constants.REGISTER_PAGE:
@@ -62,29 +60,46 @@ function SplashPage({setCurrPage}) {
     )
 }
 
-function Login({setCurrPage}) {
+function Login({setCurrPage, setLoggedIn}) {
     const [email, setEmail] = useState("")
     const [emailError, setEmailError] = useState("")
     const [password, setPassword] = useState("")
     const [passwordError, setPasswordError] = useState("")
 
     const handleLogin = (event) => {
-        // STILL IN PROGRESS
         event.preventDefault()
-
-
+        const loginUser = async () => {
+            const userData = {
+                email: email,
+                password: password
+            }
+            const res = await axios.post('http://localhost:8000/login', userData)
+            return res
+        }
+    
+        
+        loginUser()
+            .then(() => {
+                setLoggedIn(true)
+            })
+            .catch(error => {
+                console.log(error.response)
+                console.log(error.message)
+            })
     }
 
     return(
-        <form className="welcome-form">
+        <form className="welcome-form" onSubmit={handleLogin}>
             <div>
                 <label htmlFor='email' className='welcome-input'>Email: </label>
-                <input type='text' id='email' onChange={(email) => setEmail(email)}></input>
+                <input type='text' id='email' onChange={(event) => setEmail(event.target.value)}></input>
+                <div>{emailError}</div>
             </div>
             <br></br>
             <div>
                 <label htmlFor='password' className='welcome-input'>Password: </label>
-                <input type='password' id='password' onChange={(password) => setEmail(password)}></input>
+                <input type='password' id='password' onChange={(event) => setPassword(event.target.value)}></input>
+                <div>{passwordError}</div>
             </div>
             <br></br>
             <div>
@@ -118,7 +133,7 @@ function Register({setCurrPage}) {
             https://www.regular-expressions.info/email.html
         */
         const emailRegex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
-        const passwordRegex = new RegExp(username + '|' + email.substr(0, email.indexOf('@')), "gi")
+        const passwordRegex = new RegExp(username + '|' + email.substring(0, email.indexOf('@')), "gi")
 
         // Email should have a correct format.
         if(!emailRegex.test(email)) {
@@ -151,7 +166,8 @@ function Register({setCurrPage}) {
                 password: password,
             }
 
-            await axios.post('http://localhost:8000/register', userData)
+            const res = await axios.post('http://localhost:8000/register', userData)
+            return res
         }
     
         registerUser()
