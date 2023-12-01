@@ -15,7 +15,7 @@ export default function HomePage() {
   const [currDisplayedQuestion, setDisplayedQuestion] = useState([]) // SHOULD PROBABLY BE MOVED TO SEE ANSWERS INSTEAD
   const [allAnswers, setAllAnswers] = useState([]);
   const [currDisplayedAnswers, setDisplayedAnswers] = useState([]);
-
+  
   /*
     By using useEffect, the GET request for questions will always be done after every rendering.
     So, since it's initially set to an empty array, it'll render no questions, but the effect
@@ -96,6 +96,7 @@ export default function HomePage() {
           }
         }>
           <div id="header" className="header">
+            <h2 id="user-link">{}</h2>
             <h1 id="website-title">Fake Stack Overflow</h1>
             <SearchBar />
           </div>
