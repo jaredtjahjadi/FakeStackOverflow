@@ -3,7 +3,7 @@ import * as Constants from '../constants';
 import QuestionsPage from './QuestionsPage';
 import PostQuestionPage from './PostQuestionPage';
 import TagsPage from './TagsPage';
-import { SeeAnswers } from './SeeAnswers';
+import { SeeAnswers } from './seeAnswers';
 import { QuestionsInfo } from './HomePage';
 import PostAnswerPage from './PostAnswerPage';
 

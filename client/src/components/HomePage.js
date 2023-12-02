@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from 'react';
-import Body from './Body.js';
+import Body from './body';
 import * as Constants from '../constants'
 import axios from 'axios'
 

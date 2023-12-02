@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, Fragment } from 'react';
 import { QuestionsInfo } from './HomePage';
-import { AskQuestion } from './Body';
+import { AskQuestion } from './body';
 import { QuestionDateMetadata, splitArray } from './QuestionsPage';
 import * as Constants from '../constants';
 import axios from 'axios';
