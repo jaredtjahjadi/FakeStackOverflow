@@ -1,9 +1,10 @@
-import React, { useContext, useEffect, Fragment } from 'react';
+import React, { useContext, useEffect, Fragment, useState } from 'react';
 import { QuestionsInfo } from './HomePage';
 import { AskQuestion } from './body';
-import { QuestionDateMetadata, splitArray } from './QuestionsPage';
+import { QuestionDateMetadata, splitArray } from './questionspage';
 import * as Constants from '../constants';
 import axios from 'axios';
+import { ErrorMessage } from './PostQuestionPage';
 
 let answerChunkInd = 0;
 
@@ -31,8 +32,8 @@ export function SeeAnswers() {
         }
         getAnswers();
 
-        return () => {isMounted = false; }
-    }, [currDisplayedQuestion.qid])
+        return () => { isMounted = false; }
+    })
 
     return (
         <div id='see-answers-page'>
@@ -58,6 +59,44 @@ export function SeeAnswers() {
 }
 
 function Answer({answer}) {
+    const emptyFieldStr = "This field must be filled out.";
+    const [comments, setComments] = useState(false);
+    const [formErrors, setFormErrors] = useState({});
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        const commentText = event.target.commenttext.value.trim();
+        const commentUser = event.target.commentuser.value.trim();
+        const errors = validateForm({commentText, commentUser});
+        if(Object.keys(errors).length === 0) {
+            try {
+                event.target.reset();
+                setFormErrors({});
+                setComments(!comments);
+                await axios.post('http://localhost:8000/postQComment', {
+                    text: commentText,
+                    com_by: commentUser,
+                    com_date_time: new Date(),
+                    votes: 0,
+                    qid: answer.aid
+                })
+            } catch { console.log(errors); }
+        } else setFormErrors(errors);
+    }
+
+    const validateForm = ({commentText, commentUser}) => {
+        const errors = {};
+        if(commentText.length === 0) errors.commentText = emptyFieldStr;
+        const tokens = commentText.match(/\[[^\]]*\]\([^)]*\)/g); // [...](...). "..." = anything (including empty string)
+        const regex = /\[.+?\]\(\s*(https:\/\/|http:\/\/)[^)](.*?)\)/g; // [text](link)
+        if(tokens) {
+            for(let token of tokens) if(!regex.test(token))
+                errors.ansText = "Hyperlink in answer text invalid. Must be of the form [text](link).";
+        }
+        if(commentUser.length === 0) errors.commentUser = emptyFieldStr;
+        return errors;
+    }
+
     return (
         <div id={answer.aid} className='answer-container'>
             <div className="votes">
@@ -79,6 +118,22 @@ function Answer({answer}) {
             </div>
             <div className='answer-text'><Text text={answer.text} /></div>
             <div className='answer-metadata'><AnswerDateMetadata answer={answer}/></div>
+            {/* <div className="answer-comment-container">
+                <div className="answer-comments">
+                    {console.log(answer.comments)}
+                    {answer.comments.map((c) => <div>{c.text}</div>)}
+                </div>
+                {comments
+                    ? <form id='post-comment' onSubmit={handleSubmit}>
+                        <input type='text' name='commenttext' />
+                        {formErrors.commentText && <ErrorMessage errMsg={formErrors.commentText} />}
+                        <input type='text' name='commentuser' />
+                        {formErrors.commentUser && <ErrorMessage errMsg={formErrors.commentUser} />}
+                        <input type='submit' value="Post Comment" />
+                    </form>
+                    : <div id="add-comment-container"><button id="add-comment" type="button" onClick={() => {setComments(!comments)}}>Add Comment</button></div>
+                }
+            </div> */}
         </div>
     )
 }

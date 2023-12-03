@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import * as Constants from '../constants'
 import {QuestionsInfo} from './HomePage'
 import axios from 'axios'
+import { ErrorMessage } from './PostQuestionPage';
 
 let questionChunkInd = 0;
 
@@ -77,64 +78,134 @@ function Questions() {
 }
 
 function Question({question}) {
+    const emptyFieldStr = "This field must be filled out."
     const questionsInfo = useContext(QuestionsInfo);
     const setCurrPage = questionsInfo.setCurrPage;
     const setDisplayedQuestion = questionsInfo.setDisplayedQuestion;
     const [tags, setTags] = useState([])
+    const [comments, setComments] = useState([]);
+    const [insertComment, showInsertComment] = useState(false);
+    const [formErrors, setFormErrors] = useState({});
 
     let qid = question.qid;
     let currTitleTagsContainer = qid + "-title-tags-container";
     let currTagsContainer = qid + "-tags-container";
 
     useEffect(() => {
-            const getTags = async () => {
-                await axios.get('http://localhost:8000/tags', { params: question.tagIds })
-                .then(res => {setTags(res.data)})
+            const getQData = async () => {
+                const [tagData, commentData] = await Promise.all([axios.get('http://localhost:8000/tags', {params: question.tagIds}), axios.get('http://localhost:8000/comments', {params: question.comments})]);
+                setTags(tagData.data);
+                console.log(tagData);
+                console.log(commentData);
+                setComments(commentData.data);
+                // const tagData = await axios.get('http://localhost:8000/tags', { params: question.tagIds })
+                // const commentData = await axios.get('http://localhost:8000/insertComment', { params: question.insertComment })
+                // setTags(tagData);
+                // setComments(commentData);
             }
-            getTags();
-        }, [question])
+            getQData();
+    }, [question])
 
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        const commentText = event.target.commenttext.value.trim();
+        const commentUser = event.target.commentuser.value.trim();
+        const errors = validateForm({commentText, commentUser});
+        if(Object.keys(errors).length === 0) {
+            try {
+                event.target.reset();
+                setFormErrors({});
+                showInsertComment(!insertComment);
+                await axios.post('http://localhost:8000/postQComment', {
+                    text: commentText,
+                    com_by: commentUser,
+                    com_date_time: new Date(),
+                    votes: 0,
+                    qid: qid
+                })
+            } catch { console.log(errors); }
+        } else setFormErrors(errors);
+    }
+
+    const validateForm = ({commentText, commentUser}) => {
+        const errors = {};
+        if(commentText.length === 0) errors.commentText = emptyFieldStr;
+        const tokens = commentText.match(/\[[^\]]*\]\([^)]*\)/g); // [...](...). "..." = anything (including empty string)
+        const regex = /\[.+?\]\(\s*(https:\/\/|http:\/\/)[^)](.*?)\)/g; // [text](link)
+        if(tokens) {
+            for(let token of tokens) if(!regex.test(token))
+                errors.ansText = "Hyperlink in answer text invalid. Must be of the form [text](link).";
+        }
+        if(commentUser.length === 0) errors.commentUser = emptyFieldStr;
+        return errors;
+    }
+    
     return (
-        <div className="question-container">
-            <div className="votes">
-                <p className="upvote" onClick={() => {
-                    const incQVote = async() => {
-                        try { await axios.post('http://localhost:8000/incQVote', question) }
-                        catch(error) { console.log(error) }
-                    }
-                    incQVote();
-                }}>🡅</p>
-                {question.votes}
-                <p className="downvote" onClick={() => {
-                    const decQVote = async() => {
-                        try { await axios.post('http://localhost:8000/decQVote', question) }
-                        catch(error) { console.log(error) }
-                    }
-                    decQVote();
-                }}>🡇</p>
-            </div>
-            <p className='interaction-stats'>
-                {question.ansIds.length} answers
-                <br />
-                {question.views} views
-            </p>
-
-            <div id={currTitleTagsContainer} className='title-tags-container'>
-                <div className="title" onClick={() => {
-                    const incrementView = async() => {
-                        try { await axios.post('http://localhost:8000/incrementView', question) }
-                        catch(error) { console.log(error) }
-                    }
-                    incrementView();
-                    setDisplayedQuestion(question);
-                    setCurrPage(Constants.SEE_ANSWERS_PAGE);
-                }}>
-                    {question.title} 
+        <div>
+            <div className="question-container">
+                <div className="votes">
+                    <p className="upvote" onClick={() => {
+                        const incQVote = async() => {
+                            try { await axios.post('http://localhost:8000/incQVote', question) }
+                            catch(error) { console.log(error) }
+                        }
+                        incQVote();
+                    }}>🡅</p>
+                    {question.votes}
+                    <p className="downvote" onClick={() => {
+                        const decQVote = async() => {
+                            try { await axios.post('http://localhost:8000/decQVote', question) }
+                            catch(error) { console.log(error) }
+                        }
+                        decQVote();
+                    }}>🡇</p>
                 </div>
+                <p className='interaction-stats'>
+                    {question.ansIds.length} answers
+                    <br />
+                    {question.views} views
+                </p>
 
-                <div id={currTagsContainer} className='tags-container'>{tags.map((t) => <div key={t.tid} className='tags'>{t.name}</div>)}</div>
+                <div id={currTitleTagsContainer} className='title-tags-container'>
+                    <div className="title" onClick={() => {
+                        const incrementView = async() => {
+                            try { await axios.post('http://localhost:8000/incrementView', question) }
+                            catch(error) { console.log(error) }
+                        }
+                        incrementView();
+                        setDisplayedQuestion(question);
+                        setCurrPage(Constants.SEE_ANSWERS_PAGE);
+                    }}>
+                        {question.title} 
+                    </div>
+
+                    <div id={currTagsContainer} className='tags-container'>{tags.map((t) => <div key={t.tid} className='tags'>{t.name}</div>)}</div>
+                </div>
+                <QuestionDateMetadata question={question} />
             </div>
-            <QuestionDateMetadata question={question} />
+            <div className="question-comment-container">
+                <div className="question-insertComment">
+                    {comments.map((c) =>
+                        <div className="comment-container">
+                            <div>
+                                {c.text}
+                            </div>
+                            <div>
+                                <CommentDateMetadata comment={c} />
+                            </div>
+                        </div>)}
+                </div>
+                {insertComment
+                    ? <form id='post-comment' onSubmit={handleSubmit}>
+                        <input type='text' name='commenttext' />
+                        {formErrors.commentText && <ErrorMessage errMsg={formErrors.commentText} />}
+                        <input type='text' name='commentuser' />
+                        {formErrors.commentUser && <ErrorMessage errMsg={formErrors.commentUser} />}
+                        <input type='submit' value="Post Comment" />
+                    </form>
+                    : <div id="add-comment-container"><button id="add-comment" type="button" onClick={() => {showInsertComment(!insertComment)}}>Add Comment</button></div>
+                }
+            </div>
         </div>
     )
 }
@@ -157,6 +228,28 @@ export function QuestionDateMetadata(props) {
     else if(time_ago > hours_ago) ask_time = q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000 * 60 * 60)) + " hours ago";
     else if(time_ago > minutes_ago) ask_time = q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000 * 60)) + " minutes ago";
     else ask_time = q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000)) + " seconds ago";
+
+    return ( <p className='time-since-asked'>{ask_time}</p> )
+}
+
+export function CommentDateMetadata(props) {
+    let c = props.comment;
+    let time_now = new Date();
+    let time_asked = new Date(c.comDate);
+    const time_ago = time_now - time_asked;
+    const minutes_ago = 1000 * 60;
+    const hours_ago = minutes_ago * 60;
+    const days_ago = hours_ago * 24;
+    const years_ago = days_ago * 365;
+    let ask_time = "";
+    
+    if(time_ago > years_ago) ask_time = c.comBy + " commented "+ time_asked.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: false});
+    else if(time_ago > days_ago) ask_time = c.comBy + " commented "+ time_asked.toLocaleString('en-US', { month: 'long' }) + " " + time_asked.getDate() +
+        " at " + time_asked.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false});
+    else if(time_ago > hours_ago) ask_time = c.comBy + " commented "+ Math.round((time_now - time_asked)/(1000 * 60 * 60)) + " hours ago";
+    else if(time_ago > minutes_ago) ask_time = c.comBy + " commented "+ Math.round((time_now - time_asked)/(1000 * 60)) + " minutes ago";
+    else ask_time = c.comBy + " commented "+ Math.round((time_now - time_asked)/(1000)) + " seconds ago";
 
     return ( <p className='time-since-asked'>{ask_time}</p> )
 }

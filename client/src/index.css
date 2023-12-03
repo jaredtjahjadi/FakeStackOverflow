@@ -168,11 +168,14 @@ body { font-family: Arial; }
 
 /* QUESTIONS */
 
+#questions > div {
+    border-bottom: dotted;
+}
+
 .question-container
 {
     display: grid;
     grid-template-columns: 1.5% 10% 73.5% 15%;
-    border-bottom: dotted;
     align-items: center;
     padding: 20px;
 }
@@ -232,6 +235,19 @@ body { font-family: Arial; }
 }
 
 .time-since-asked { text-align: right; }
+
+.question-comment-container, .answer-comment-container {
+    margin: 2.5% 5%;
+}
+
+.comment-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.post-comment {
+    display: flex;
+}
 
 /* SEE ANSWERS */
 
