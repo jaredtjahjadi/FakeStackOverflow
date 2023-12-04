@@ -96,7 +96,7 @@ function Question({question}) {
     }, [question])
     
     return (
-        <div>
+        <div className="question">
             <div className="question-container">
                 <div className="votes">
                     <p className="upvote" onClick={() => {
@@ -165,19 +165,22 @@ export function DateMetadata(props) {
         str = " commented "
     }
     const time_ago = time_now - time_posted;
+    const num_secs = Math.round((time_now - time_posted)/(1000));
     const minutes_ago = 1000 * 60;
+    const num_mins = Math.round((time_now - time_posted)/(1000 * 60));
     const hours_ago = minutes_ago * 60;
+    const num_hours = Math.round((time_now - time_posted)/(1000 * 60 * 60));
     const days_ago = hours_ago * 24;
     const years_ago = days_ago * 365;
     let post_time = "";
     
-    if(time_ago > years_ago) post_time = posted_by + str + time_posted.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric',
+    if(time_ago > years_ago) post_time = posted_by + str + " on " + time_posted.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric',
         hour: '2-digit', minute: '2-digit', hour12: false});
-    else if(time_ago > days_ago) post_time = posted_by + str + time_posted.toLocaleString('en-US', { month: 'long' }) + " " + time_posted.getDate() +
+    else if(time_ago > days_ago) post_time = posted_by + str + " on " + time_posted.toLocaleString('en-US', { month: 'long' }) + " " + time_posted.getDate() +
         " at " + time_posted.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false});
-    else if(time_ago > hours_ago) post_time = posted_by + str + Math.round((time_now - time_posted)/(1000 * 60 * 60)) + " hours ago";
-    else if(time_ago > minutes_ago) post_time = posted_by + str + Math.round((time_now - time_posted)/(1000 * 60)) + " minutes ago";
-    else post_time = posted_by + str + Math.round((time_now - time_posted)/(1000)) + " seconds ago";
+    else if(time_ago > hours_ago) post_time = posted_by + str + num_hours + " hour" + ((num_hours === 1) ? "" : "s") + " ago";
+    else if(time_ago > minutes_ago) post_time = posted_by + str + num_mins + " minute" + ((num_mins === 1) ? "" : "s") + " ago";
+    else post_time = posted_by + str + num_secs + " second" + ((num_secs === 1) ? "" : "s") + " ago";
     return ( <div className='time'>{post_time}</div> )
 }
 

@@ -1,20 +1,17 @@
-import { useContext, useState, useEffect } from "react";
-import { QuestionsInfo } from "./HomePage";
-import { DateMetadata, splitArray } from "./questionspage";
+import { useState, useEffect } from "react";
+import { DateMetadata, splitArray } from "./QuestionsPage";
 import { ErrorMessage } from "./PostQuestionPage";
-import { Text } from "./seeAnswers";
+import { Text } from "./SeeAnswers";
 import axios from "axios";
 
 let commentChunkInd = 0;
 
 export default function Comments(props) {
-    const question = props.question;
+    let question = props.question;
+    let answer = props.answer;
     const emptyFieldStr = "This field must be filled out.";
-    const questionsInfo = useContext(QuestionsInfo);
-    const comments = questionsInfo.allComments;
-    const setComments = questionsInfo.setAllComments;
-    const currDisplayedComments = questionsInfo.currDisplayedComments;
-    const setDisplayedComments = questionsInfo.setDisplayedComments;
+    const [comments, setComments] = useState([]);
+    const [currDisplayedComments, setDisplayedComments] = useState([]);
     const [insertComment, showInsertComment] = useState(false);
     const [formErrors, setFormErrors] = useState({});
 
@@ -22,7 +19,9 @@ export default function Comments(props) {
         let isMounted = true;
         const getComments = async () => {
             try {
-                const res = await axios.get(`http://localhost:8000/${question.qid}/comments`)
+                let res;
+                if(question) res = await axios.get(`http://localhost:8000/questions/${question.qid}/comments`);
+                if(answer) res = await axios.get(`http://localhost:8000/answers/${answer.aid}/comments`);
                 if(isMounted) {
                     setComments(res.data);
                     setDisplayedComments(res.data.slice(0, 3));
@@ -32,7 +31,7 @@ export default function Comments(props) {
         }
         getComments();
         return () => { isMounted = false; }
-    }, [setDisplayedComments, question, setComments])
+    }, [setDisplayedComments, question, answer, setComments])
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -44,13 +43,24 @@ export default function Comments(props) {
                 event.target.reset();
                 setFormErrors({});
                 showInsertComment(!insertComment);
-                await axios.post('http://localhost:8000/postQComment', {
-                    text: commentText,
-                    com_by: commentUser,
-                    com_date_time: new Date(),
-                    votes: 0,
-                    qid: question.qid
-                })
+                if(question) {
+                    await axios.post('http://localhost:8000/postQComment', {
+                        text: commentText,
+                        com_by: commentUser,
+                        com_date_time: new Date(),
+                        votes: 0,
+                        qid: question.qid
+                    })
+                }
+                if(answer) {
+                    await axios.post('http://localhost:8000/postAComment', {
+                        text: commentText,
+                        com_by: commentUser,
+                        com_date_time: new Date(),
+                        votes: 0,
+                        aid: answer.aid
+                    })
+                }
             } catch { console.log(errors); }
         } else setFormErrors(errors);
     }
@@ -69,11 +79,8 @@ export default function Comments(props) {
     }
 
     return (
-        <div className="question-comment-container">
-            <div className="question-comment">
-                {console.log(currDisplayedComments)}
-                {currDisplayedComments.map((c) => <Comment key={c.cid} comment={c} />)}
-                </div>
+        <div className="comments">
+            {currDisplayedComments.map((c) => <Comment key={c.cid} comment={c} />)}
             {insertComment
                 ? <form id='post-comment' onSubmit={handleSubmit}>
                     <input type='text' name='commenttext' />
@@ -91,7 +98,24 @@ export default function Comments(props) {
 
 function Comment({comment}) {
     return (
-        <div className="comment-container">
+        <div className="comment">
+            <div className="votes">
+                    <p className="upvote" onClick={() => {
+                        const incQVote = async() => {
+                            try { await axios.post('http://localhost:8000/incCVote', comment) }
+                            catch(error) { console.log(error) }
+                        }
+                        incQVote();
+                    }}>🡅</p>
+                    {comment.votes}
+                    <p className="downvote" onClick={() => {
+                        const decQVote = async() => {
+                            try { await axios.post('http://localhost:8000/decCVote', comment) }
+                            catch(error) { console.log(error) }
+                        }
+                        decQVote();
+                    }}>🡇</p>
+                </div>
             <div><Text text={comment.text} /></div>
             <DateMetadata comment={comment} />
         </div>

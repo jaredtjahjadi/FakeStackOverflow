@@ -201,9 +201,17 @@ app.get('/tags', (req, res) => {
     catch (error) { console.error(error) }
 })
 
-app.get('/:questionId/comments', async (req, res) => {
+app.get('/questions/:questionId/comments', async (req, res) => {
     const q = await Question.findById(req.params.questionId);
     Comment.find({_id: {$in: q.comments}}).exec().then(comments => {
+        comments = formatComments(comments);
+        res.send(comments);
+    })
+})
+
+app.get('/answers/:answerId/comments', async (req, res) => {
+    const a = await Answer.findById(req.params.answerId);
+    Comment.find({_id: {$in: a.comments}}).exec().then(comments => {
         comments = formatComments(comments);
         res.send(comments);
     })
@@ -346,6 +354,8 @@ app.post('/incQVote', async(req, res) => { await Question.findByIdAndUpdate({_id
 app.post('/decQVote', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { votes: -1}}) })
 app.post('/incAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: 1}}) })
 app.post('/decAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: -1}}) })
+app.post('/incCVote', async(req, res) => { await Comment.findByIdAndUpdate({_id: req.body.cid}, {$inc: { votes: 1}}) })
+app.post('/decCVote', async(req, res) => { await Comment.findByIdAndUpdate({_id: req.body.cid}, {$inc: { votes: -1}}) })
 app.post('/incrementView', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { views: 1}}) })
 
 app.post('/postQComment', (req, res) => {
@@ -359,6 +369,22 @@ app.post('/postQComment', (req, res) => {
             })
             com.save();
             await Question.findByIdAndUpdate({_id: req.body.qid}, { $push: { comments: com._id }})
+        } catch(error) { console.log(error) }
+    }
+    postComment();
+})
+
+app.post('/postAComment', (req, res) => {
+    async function postComment() {
+        try {
+            const com = new Comment({
+                text: req.body.text,
+                com_by: req.body.com_by,
+                com_date_time: req.body.com_date_time,
+                votes: 0
+            })
+            com.save();
+            await Answer.findByIdAndUpdate({_id: req.body.aid}, { $push: { comments: com._id }})
         } catch(error) { console.log(error) }
     }
     postComment();
@@ -383,7 +409,6 @@ async function hashPassword(password) {
     Other things such as formatAnswers in the future could be here too. - Torin
 */
 function formatQuestions(questions) {
-
     for(let i = 0; i < questions.length; i++) {
         let q = questions[i];
 
@@ -400,8 +425,7 @@ function formatQuestions(questions) {
             comments: q.comments
         }
     }
-
-    return questions
+    return questions;
 }
 
 function formatAnswers(answers) {
