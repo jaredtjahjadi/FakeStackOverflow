@@ -34,6 +34,29 @@
 
 }
 
+/* User Profile */
+
+#user-profile
+{
+    margin: 2% 5%;
+}
+
+#profile-card
+{
+    display: flex;
+    gap: 200px
+}
+
+#profile-info-header
+{
+    text-decoration: underline;
+}
+
+#username
+{
+    vertical-align: center;
+}
+
 /* Home Page */
 
 html, body, #root, .fakeso { height: 100% }
@@ -58,6 +81,12 @@ body { font-family: Arial; }
 }
 
 #website-title { text-align: center; }
+
+#username-link
+{
+    cursor: pointer;
+    
+}
 
 #search-bar
 {

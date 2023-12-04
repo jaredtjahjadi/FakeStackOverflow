@@ -17,7 +17,7 @@ export default function HomePage({setLoggedIn}) {
   const [currDisplayedAnswers, setDisplayedAnswers] = useState([]);
   const [username, setUsername] = useState("");
   
-  //This useEffect is done to conditionally render specific questions based on the current filter.
+  // This useEffect is done to conditionally render specific questions based on the current filter.
 
   useEffect(() => {
 
@@ -109,7 +109,11 @@ export default function HomePage({setLoggedIn}) {
           }
         }>
           <div id="header" className="header">
-            <h2 id="username">{username}</h2>
+            <h2 id="username-link" onClick={function() {
+              setCurrPage(Constants.USER_PROFILE);
+            }}>
+              {username}
+            </h2>
             <h1 id="website-title">Fake Stack Overflow</h1>
             <SearchBar />
           </div>

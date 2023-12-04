@@ -71,7 +71,7 @@ const ADMIN = 'ADMIN'
 app.get('/', (req,res) => {
 
     // Session for the user still exists
-    if(req.session.email)
+    if(req.session.username)
         res.status(200).send()
 
     // Session expired
@@ -95,7 +95,9 @@ app.post('/register', async (req, res) => {
                         username: data.username,
                         email: data.email,
                         passwordHash: hash,
-                        role: USER
+                        role: USER,
+                        reputation: 0,
+                        timeJoined: new Date()
                     })
                     user.save()
                     return res.status(200).send()
@@ -121,13 +123,24 @@ app.post('/login', async (req, res) => {
         })
     }
 
-    req.session.user = {
-        username: user.username,
-        email: req.body.email.trim(),
-        role: user.role
-    }
-    
+    req.session.username = user.username
     res.status(200).send()
+})
+
+/*
+    User Profile
+*/
+
+app.get('/userProfile', (req,res) => {
+
+    User.findOne({username: req.session.username}).exec()
+        .then(user => {
+            res.send({
+                username: user.username,
+                reputation: user.reputation,
+                timeJoined: user.timeJoined
+            })
+        })
 })
 
 /*
@@ -135,7 +148,7 @@ app.post('/login', async (req, res) => {
 */
 
 app.get('/username', (req, res) => {
-    res.send(req.session.user.username)
+    res.send(req.session.username)
 })
 
 app.get('/newestQuestions', (req, res) => {

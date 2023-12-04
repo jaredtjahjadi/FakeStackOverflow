@@ -6,6 +6,7 @@ import TagsPage from './TagsPage';
 import { SeeAnswers } from './SeeAnswers';
 import { QuestionsInfo } from './HomePage';
 import PostAnswerPage from './PostAnswerPage';
+import { UserProfile } from './UserProfile';
 import axios from 'axios'
 
 export default function Body() {
@@ -37,6 +38,9 @@ export function Main() {
             break;
         case Constants.POST_ANSWER_PAGE:
             mainContent = <PostAnswerPage />;
+            break;
+        case Constants.USER_PROFILE:
+            mainContent = <UserProfile />;
             break;
         default:
             mainContent = <QuestionsPage />;
@@ -77,7 +81,6 @@ export function Menu() {
                 Tags
             </div>
             <div
-                className={currPage === Constants.TAGS_PAGE ? "active" : undefined}
                 onClick={async () => {
                     await axios.post('http://localhost:8000/logout')
                     setLoggedIn(false)
