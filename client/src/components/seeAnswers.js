@@ -1,9 +1,10 @@
 import React, { useContext, useEffect, Fragment, useState } from 'react';
 import { QuestionsInfo } from './HomePage';
 import { AskQuestion } from './body';
-import { DateMetadata, splitArray } from './questionspage';
+import { DateMetadata, splitArray } from './QuestionsPage';
 import * as Constants from '../constants';
 import axios from 'axios';
+import Comments from './Comments';
 
 let answerChunkInd = 0;
 
@@ -11,10 +12,8 @@ export function SeeAnswers() {
     const questionInfo = useContext(QuestionsInfo)
     const currDisplayedQuestion = questionInfo.currDisplayedQuestion;
     const setCurrPage = questionInfo.setCurrPage;
-    const answers = questionInfo.allAnswers;
-    const setAnswers = questionInfo.setAllAnswers;
-    const currDisplayedAnswers = questionInfo.currDisplayedAnswers;
-    const setDisplayedAnswers = questionInfo.setDisplayedAnswers;
+    const [answers, setAnswers] = useState([]);
+    const [currDisplayedAnswers, setDisplayedAnswers] = useState([]);
 
     // Retrieves answers for current question from server
     useEffect(() => {
@@ -58,81 +57,30 @@ export function SeeAnswers() {
 }
 
 function Answer({answer}) {
-    const emptyFieldStr = "This field must be filled out.";
-    const [comments, setComments] = useState(false);
-    const [formErrors, setFormErrors] = useState({});
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        const commentText = event.target.commenttext.value.trim();
-        const commentUser = event.target.commentuser.value.trim();
-        const errors = validateForm({commentText, commentUser});
-        if(Object.keys(errors).length === 0) {
-            try {
-                event.target.reset();
-                setFormErrors({});
-                setComments(!comments);
-                await axios.post('http://localhost:8000/postQComment', {
-                    text: commentText,
-                    com_by: commentUser,
-                    com_date_time: new Date(),
-                    votes: 0,
-                    qid: answer.aid
-                })
-            } catch { console.log(errors); }
-        } else setFormErrors(errors);
-    }
-
-    const validateForm = ({commentText, commentUser}) => {
-        const errors = {};
-        if(commentText.length === 0) errors.commentText = emptyFieldStr;
-        const tokens = commentText.match(/\[[^\]]*\]\([^)]*\)/g); // [...](...). "..." = anything (including empty string)
-        const regex = /\[.+?\]\(\s*(https:\/\/|http:\/\/)[^)](.*?)\)/g; // [text](link)
-        if(tokens) {
-            for(let token of tokens) if(!regex.test(token))
-                errors.ansText = "Hyperlink in answer text invalid. Must be of the form [text](link).";
-        }
-        if(commentUser.length === 0) errors.commentUser = emptyFieldStr;
-        return errors;
-    }
-
     return (
-        <div id={answer.aid} className='answer-container'>
-            <div className="votes">
-                <p className="upvote" onClick={() => {
-                    const incQVote = async() => {
-                        try { await axios.post('http://localhost:8000/incAVote', answer) }
-                        catch(error) { console.log(error) }
-                    }
-                    incQVote();
-                }}>🡅</p>
-                {answer.votes}
-                <p className="downvote" onClick={() => {
-                    const decQVote = async() => {
-                        try { await axios.post('http://localhost:8000/decAVote', answer) }
-                        catch(error) { console.log(error) }
-                    }
-                    decQVote();
-                }}>🡇</p>
-            </div>
-            <div className='answer-text'><Text text={answer.text} /></div>
-            <DateMetadata answer={answer}/>
-            {/* <div className="answer-comment-container">
-                <div className="answer-comments">
-                    {console.log(answer.comments)}
-                    {answer.comments.map((c) => <div>{c.text}</div>)}
+        <div>
+            <div id={answer.aid} className='answer-container'>
+                <div className="votes">
+                    <p className="upvote" onClick={() => {
+                        const incQVote = async() => {
+                            try { await axios.post('http://localhost:8000/incAVote', answer) }
+                            catch(error) { console.log(error) }
+                        }
+                        incQVote();
+                    }}>🡅</p>
+                    {answer.votes}
+                    <p className="downvote" onClick={() => {
+                        const decQVote = async() => {
+                            try { await axios.post('http://localhost:8000/decAVote', answer) }
+                            catch(error) { console.log(error) }
+                        }
+                        decQVote();
+                    }}>🡇</p>
                 </div>
-                {comments
-                    ? <form id='post-comment' onSubmit={handleSubmit}>
-                        <input type='text' name='commenttext' />
-                        {formErrors.commentText && <ErrorMessage errMsg={formErrors.commentText} />}
-                        <input type='text' name='commentuser' />
-                        {formErrors.commentUser && <ErrorMessage errMsg={formErrors.commentUser} />}
-                        <input type='submit' value="Post Comment" />
-                    </form>
-                    : <div id="add-comment-container"><button id="add-comment" type="button" onClick={() => {setComments(!comments)}}>Add Comment</button></div>
-                }
-            </div> */}
+                <div className='answer-text'><Text text={answer.text} /></div>
+                <DateMetadata answer={answer} />
+            </div>
+            <Comments answer={answer} />
         </div>
     )
 }

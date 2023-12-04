@@ -168,9 +168,7 @@ body { font-family: Arial; }
 
 /* QUESTIONS */
 
-#questions > div {
-    border-bottom: dotted;
-}
+.question { border-bottom: dotted; }
 
 .question-container
 {
@@ -234,14 +232,13 @@ body { font-family: Arial; }
     margin-left: 5%;
 }
 
-.time {
-    text-align: right;
-}
+.time { text-align: right; }
 
-.question-comment-container, .answer-comment-container { margin: 2.5% 5%; }
+.comments { margin: 2.5% 5%; }
 
-.comment-container {
-    display: flex;
+.comment {
+    display: grid;
+    grid-template-columns: 5% 70% 25%;
     justify-content: space-between;
     margin: 1% 0%;
 }
@@ -318,11 +315,12 @@ body { font-family: Arial; }
     flex: 1;
 }
 
+#answers > div { border-bottom: dotted; }
+
 .answer-container
 {
     display: grid;
     grid-template-columns: 5% 70% 25%;
-    border-bottom: dotted;
 }
 
 .answer-text

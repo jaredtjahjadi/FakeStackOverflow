@@ -1,9 +1,9 @@
 import React, { useContext } from 'react';
 import * as Constants from '../constants';
-import QuestionsPage from './questionspage';
+import QuestionsPage from './QuestionsPage';
 import PostQuestionPage from './PostQuestionPage';
 import TagsPage from './TagsPage';
-import { SeeAnswers } from './seeAnswers';
+import { SeeAnswers } from './SeeAnswers';
 import { QuestionsInfo } from './HomePage';
 import PostAnswerPage from './PostAnswerPage';
 import axios from 'axios'

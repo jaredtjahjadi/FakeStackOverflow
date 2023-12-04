@@ -13,10 +13,10 @@ export default function HomePage({setLoggedIn}) {
   const [numQuestions, setNumQuestions] = useState(allQuestions.length);
   const [typeResults, setTypeResults] = useState("All Questions");
   const [currDisplayedQuestion, setDisplayedQuestion] = useState([]) // SHOULD PROBABLY BE MOVED TO SEE ANSWERS INSTEAD
-  const [allAnswers, setAllAnswers] = useState([]);
-  const [currDisplayedAnswers, setDisplayedAnswers] = useState([]);
-  const [allComments, setAllComments] = useState([]);
-  const [currDisplayedComments, setDisplayedComments] = useState([]);
+  // const [allAnswers, setAllAnswers] = useState([]);
+  // const [currDisplayedAnswers, setDisplayedAnswers] = useState([]);
+  // const [allComments, setAllComments] = useState([]);
+  // const [currDisplayedComments, setDisplayedComments] = useState([]);
   const [username, setUsername] = useState("");
   
   //This useEffect is done to conditionally render specific questions based on the current filter.
@@ -103,14 +103,14 @@ export default function HomePage({setLoggedIn}) {
             setTypeResults,
             currDisplayedQuestion,
             setDisplayedQuestion,
-            allAnswers,
-            setAllAnswers,
-            currDisplayedAnswers,
-            setDisplayedAnswers,
-            allComments,
-            setAllComments,
-            currDisplayedComments,
-            setDisplayedComments,
+            // allAnswers,
+            // setAllAnswers,
+            // currDisplayedAnswers,
+            // setDisplayedAnswers,
+            // allComments,
+            // setAllComments,
+            // currDisplayedComments,
+            // setDisplayedComments,
             setLoggedIn
           }
         }>
