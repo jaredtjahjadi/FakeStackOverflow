@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from 'react';
-import Body from './Body.js';
+import Body from './body';
 import * as Constants from '../constants'
 import axios from 'axios'
 
@@ -15,6 +15,8 @@ export default function HomePage({setLoggedIn}) {
   const [currDisplayedQuestion, setDisplayedQuestion] = useState([]) // SHOULD PROBABLY BE MOVED TO SEE ANSWERS INSTEAD
   const [allAnswers, setAllAnswers] = useState([]);
   const [currDisplayedAnswers, setDisplayedAnswers] = useState([]);
+  const [allComments, setAllComments] = useState([]);
+  const [currDisplayedComments, setDisplayedComments] = useState([]);
   const [username, setUsername] = useState("");
   
   // This useEffect is done to conditionally render specific questions based on the current filter.
@@ -105,6 +107,10 @@ export default function HomePage({setLoggedIn}) {
             setAllAnswers,
             currDisplayedAnswers,
             setDisplayedAnswers,
+            allComments,
+            setAllComments,
+            currDisplayedComments,
+            setDisplayedComments,
             setLoggedIn
           }
         }>

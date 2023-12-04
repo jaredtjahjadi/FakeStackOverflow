@@ -32,7 +32,8 @@ export default function PostQuestionPage() {
                     asked_by: questionUsername,
                     ask_date_time: new Date(),
                     views: 0,
-                    votes: 0
+                    votes: 0,
+                    comments: []
                 }
                 /**
                  * TODO (Jared)

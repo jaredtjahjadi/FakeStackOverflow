@@ -15,6 +15,7 @@ const MongoStore = require('connect-mongo')
 const Question = require('./models/questions')
 const Tag = require('./models/tags')
 const Answer = require('./models/answers')
+const Comment = require('./models/comments')
 const User = require('./models/users')
 
 const app = express();
@@ -180,7 +181,6 @@ app.get('/unansweredQuestions', (req, res) => {
 })
 
 app.get('/answers/:questionId', async (req, res) => {
-    // console.log(req.params.questionId);
     const q = await Question.findById(req.params.questionId);
     Answer.find({_id: {$in: q.answers}}).exec().then(answers => {
         answers = formatAnswers(answers);
@@ -199,6 +199,14 @@ app.get('/tags', (req, res) => {
         })
     }
     catch (error) { console.error(error) }
+})
+
+app.get('/:questionId/comments', async (req, res) => {
+    const q = await Question.findById(req.params.questionId);
+    Comment.find({_id: {$in: q.comments}}).exec().then(comments => {
+        comments = formatComments(comments);
+        res.send(comments);
+    })
 })
 
 app.post('/logout', async (req, res) => {
@@ -311,9 +319,7 @@ app.post('/addQuestion', (req, res) => {
                     const question = new Question(data)
                     question.save()
                 })
-        } catch (error) {
-            console.log(error)
-        }
+        } catch (error) { console.log(error) }
     }
 
     addQuestion()
@@ -325,7 +331,9 @@ app.post('/postAnswer', (req, res) => {
             const ans = new Answer({
                 text: req.body.text,
                 ans_by: req.body.ans_by,
-                ans_date_time: req.body.ans_date_time
+                ans_date_time: req.body.ans_date_time,
+                votes: 0,
+                comments: []
             })
             ans.save();
             await Question.findByIdAndUpdate({_id: req.body.questionId}, { $push: { answers: ans._id }})
@@ -339,6 +347,22 @@ app.post('/decQVote', async(req, res) => { await Question.findByIdAndUpdate({_id
 app.post('/incAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: 1}}) })
 app.post('/decAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: -1}}) })
 app.post('/incrementView', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { views: 1}}) })
+
+app.post('/postQComment', (req, res) => {
+    async function postComment() {
+        try {
+            const com = new Comment({
+                text: req.body.text,
+                com_by: req.body.com_by,
+                com_date_time: req.body.com_date_time,
+                votes: 0
+            })
+            com.save();
+            await Question.findByIdAndUpdate({_id: req.body.qid}, { $push: { comments: com._id }})
+        } catch(error) { console.log(error) }
+    }
+    postComment();
+})
 
 /*
     HELPER FUNCTIONS
@@ -372,7 +396,8 @@ function formatQuestions(questions) {
             askDate: q.ask_date_time,
             ansIds: q.answers,
             views: q.views,
-            votes: q.votes
+            votes: q.votes,
+            comments: q.comments
         }
     }
 
@@ -387,7 +412,8 @@ function formatAnswers(answers) {
             text: a.text,
             ansBy: a.ans_by,
             ansDate: a.ans_date_time,
-            votes: a.votes
+            votes: a.votes,
+            comments: a.comments
         }
     }
     return answers;
@@ -402,6 +428,20 @@ function formatTags(tags) {
         }
     }
     return tags;
+}
+
+function formatComments(comments) {
+    for(let i = 0; i < comments.length; i++) {
+        let c = comments[i];
+        comments[i] = {
+            cid: c._id,
+            text: c.text,
+            comBy: c.com_by,
+            comDate: c.com_date_time,
+            votes: c. votes
+        }
+    }
+    return comments;
 }
 
 // Upon closing server (Ctrl + C)

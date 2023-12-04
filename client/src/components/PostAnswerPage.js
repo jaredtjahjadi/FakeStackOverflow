@@ -28,7 +28,8 @@ export default function PostAnswerPage() {
                     ans_by: ansUser,
                     ans_date_time: new Date(),
                     questionId: currDisplayedQuestion.qid,
-                    votes: 0
+                    votes: 0,
+                    comments: []
                 })
             } catch(error) { console.log(error); }
         }

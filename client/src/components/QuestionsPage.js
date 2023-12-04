@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
-import * as Constants from '../constants'
-import {QuestionsInfo} from './HomePage'
-import axios from 'axios'
+import * as Constants from '../constants';
+import {QuestionsInfo} from './HomePage';
+import Comments from './Comments';
+import axios from 'axios';
 
 let questionChunkInd = 0;
 
@@ -88,84 +89,103 @@ function Question({question}) {
 
     useEffect(() => {
             const getTags = async () => {
-                await axios.get('http://localhost:8000/tags', { params: question.tagIds })
-                .then(res => {setTags(res.data)})
+                await axios.get('http://localhost:8000/tags', {params: question.tagIds})
+                .then(res => { setTags(res.data) })
             }
             getTags();
-        }, [question])
-
+    }, [question])
+    
     return (
-        <div className="question-container">
-            <div className="votes">
-                <p className="upvote" onClick={() => {
-                    const incQVote = async() => {
-                        try { await axios.post('http://localhost:8000/incQVote', question) }
-                        catch(error) { console.log(error) }
-                    }
-                    incQVote();
-                }}>🡅</p>
-                {question.votes}
-                <p className="downvote" onClick={() => {
-                    const decQVote = async() => {
-                        try { await axios.post('http://localhost:8000/decQVote', question) }
-                        catch(error) { console.log(error) }
-                    }
-                    decQVote();
-                }}>🡇</p>
-            </div>
-            <p className='interaction-stats'>
-                {question.ansIds.length} answers
-                <br />
-                {question.views} views
-            </p>
-
-            <div id={currTitleTagsContainer} className='title-tags-container'>
-                <div className="title" onClick={() => {
-                    const incrementView = async() => {
-                        try { await axios.post('http://localhost:8000/incrementView', question) }
-                        catch(error) { console.log(error) }
-                    }
-                    incrementView();
-                    setDisplayedQuestion(question);
-                    setCurrPage(Constants.SEE_ANSWERS_PAGE);
-                }}>
-                    {question.title} 
+        <div>
+            <div className="question-container">
+                <div className="votes">
+                    <p className="upvote" onClick={() => {
+                        const incQVote = async() => {
+                            try { await axios.post('http://localhost:8000/incQVote', question) }
+                            catch(error) { console.log(error) }
+                        }
+                        incQVote();
+                    }}>🡅</p>
+                    {question.votes}
+                    <p className="downvote" onClick={() => {
+                        const decQVote = async() => {
+                            try { await axios.post('http://localhost:8000/decQVote', question) }
+                            catch(error) { console.log(error) }
+                        }
+                        decQVote();
+                    }}>🡇</p>
                 </div>
+                <p className='interaction-stats'>
+                    {question.ansIds.length} answers
+                    <br />
+                    {question.views} views
+                </p>
 
-                <div id={currTagsContainer} className='tags-container'>{tags.map((t) => <div key={t.tid} className='tags'>{t.name}</div>)}</div>
+                <div id={currTitleTagsContainer} className='title-tags-container'>
+                    <div className="title" onClick={() => {
+                        const incrementView = async() => {
+                            try { await axios.post('http://localhost:8000/incrementView', question) }
+                            catch(error) { console.log(error) }
+                        }
+                        incrementView();
+                        setDisplayedQuestion(question);
+                        setCurrPage(Constants.SEE_ANSWERS_PAGE);
+                    }}>
+                        {question.title} 
+                    </div>
+
+                    <div id={currTagsContainer} className='tags-container'>{tags.map((t) => <div key={t.tid} className='tags'>{t.name}</div>)}</div>
+                </div>
+                <DateMetadata question={question} />
             </div>
-            <QuestionDateMetadata question={question} />
+            <Comments question={question} />
         </div>
     )
 }
 
-export function QuestionDateMetadata(props) {
+export function DateMetadata(props) {
     let q = props.question;
+    let a = props.answer;
+    let c = props.comment;
     let time_now = new Date();
-    let time_asked = new Date(q.askDate);
-    const time_ago = time_now - time_asked;
+    let time_posted, posted_by, str;
+    if(q) {
+        time_posted = new Date(q.askDate);
+        posted_by = q.askedBy;
+        str = " asked ";
+    }
+    if(a) {
+        time_posted = new Date(a.ansDate);
+        posted_by = a.ansBy;
+        str = " answered "
+    }
+    if(c) {
+        time_posted = new Date(c.comDate);
+        posted_by = c.comBy;
+        str = " commented "
+    }
+    const time_ago = time_now - time_posted;
     const minutes_ago = 1000 * 60;
     const hours_ago = minutes_ago * 60;
     const days_ago = hours_ago * 24;
     const years_ago = days_ago * 365;
-    let ask_time = "";
+    let post_time = "";
     
-    if(time_ago > years_ago) ask_time = q.askedBy + " asked " + time_asked.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric',
+    if(time_ago > years_ago) post_time = posted_by + str + time_posted.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric',
         hour: '2-digit', minute: '2-digit', hour12: false});
-    else if(time_ago > days_ago) ask_time = q.askedBy + " asked " + time_asked.toLocaleString('en-US', { month: 'long' }) + " " + time_asked.getDate() +
-        " at " + time_asked.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false});
-    else if(time_ago > hours_ago) ask_time = q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000 * 60 * 60)) + " hours ago";
-    else if(time_ago > minutes_ago) ask_time = q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000 * 60)) + " minutes ago";
-    else ask_time = q.askedBy + " asked " + Math.round((time_now - time_asked)/(1000)) + " seconds ago";
-
-    return ( <p className='time-since-asked'>{ask_time}</p> )
+    else if(time_ago > days_ago) post_time = posted_by + str + time_posted.toLocaleString('en-US', { month: 'long' }) + " " + time_posted.getDate() +
+        " at " + time_posted.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false});
+    else if(time_ago > hours_ago) post_time = posted_by + str + Math.round((time_now - time_posted)/(1000 * 60 * 60)) + " hours ago";
+    else if(time_ago > minutes_ago) post_time = posted_by + str + Math.round((time_now - time_posted)/(1000 * 60)) + " minutes ago";
+    else post_time = posted_by + str + Math.round((time_now - time_posted)/(1000)) + " seconds ago";
+    return ( <div className='time'>{post_time}</div> )
 }
 
 function QuestionNav() {
     const questionsInfo = useContext(QuestionsInfo);
     const allQuestions = questionsInfo.allQuestions;
     const setDisplayedQuestions = questionsInfo.setDisplayedQuestions;
-    const questionChunks = splitArray(allQuestions);
+    const questionChunks = splitArray(allQuestions, 5);
     
     return (
         <div id="nav-button-container">
@@ -192,8 +212,8 @@ function Button(props) {
 }
 
 // Helper function to split array into chunks of five
-export function splitArray(arr) {
+export function splitArray(arr, num) {
     let splittedArray = [];
-    for(let i = 0; i < arr.length; i += 5) splittedArray.push(arr.slice(i, i + 5));
+    for(let i = 0; i < arr.length; i += num) splittedArray.push(arr.slice(i, i + num));
     return splittedArray;
 }

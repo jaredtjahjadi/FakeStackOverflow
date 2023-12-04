@@ -1,7 +1,7 @@
-import React, { useContext, useEffect, Fragment } from 'react';
+import React, { useContext, useEffect, Fragment, useState } from 'react';
 import { QuestionsInfo } from './HomePage';
-import { AskQuestion } from './Body';
-import { QuestionDateMetadata, splitArray } from './QuestionsPage';
+import { AskQuestion } from './body';
+import { DateMetadata, splitArray } from './questionspage';
 import * as Constants from '../constants';
 import axios from 'axios';
 
@@ -31,8 +31,8 @@ export function SeeAnswers() {
         }
         getAnswers();
 
-        return () => {isMounted = false; }
-    }, [currDisplayedQuestion.qid])
+        return () => { isMounted = false; }
+    })
 
     return (
         <div id='see-answers-page'>
@@ -45,7 +45,7 @@ export function SeeAnswers() {
                 <div id='question-metadata-bottom'>
                     <div id='num-views'>{currDisplayedQuestion.views} views</div>
                     <div id='question-metadata-text'><Text text={currDisplayedQuestion.text} /></div>
-                    <div id='asked-by'><QuestionDateMetadata question={currDisplayedQuestion} /></div>
+                    <div id='asked-by'><DateMetadata question={currDisplayedQuestion} /></div>
                 </div>
             </div>
             <div id='answers'>{currDisplayedAnswers.map((ans) => <Answer key={ans.aid} answer={ans} />)}</div>
@@ -58,6 +58,44 @@ export function SeeAnswers() {
 }
 
 function Answer({answer}) {
+    const emptyFieldStr = "This field must be filled out.";
+    const [comments, setComments] = useState(false);
+    const [formErrors, setFormErrors] = useState({});
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        const commentText = event.target.commenttext.value.trim();
+        const commentUser = event.target.commentuser.value.trim();
+        const errors = validateForm({commentText, commentUser});
+        if(Object.keys(errors).length === 0) {
+            try {
+                event.target.reset();
+                setFormErrors({});
+                setComments(!comments);
+                await axios.post('http://localhost:8000/postQComment', {
+                    text: commentText,
+                    com_by: commentUser,
+                    com_date_time: new Date(),
+                    votes: 0,
+                    qid: answer.aid
+                })
+            } catch { console.log(errors); }
+        } else setFormErrors(errors);
+    }
+
+    const validateForm = ({commentText, commentUser}) => {
+        const errors = {};
+        if(commentText.length === 0) errors.commentText = emptyFieldStr;
+        const tokens = commentText.match(/\[[^\]]*\]\([^)]*\)/g); // [...](...). "..." = anything (including empty string)
+        const regex = /\[.+?\]\(\s*(https:\/\/|http:\/\/)[^)](.*?)\)/g; // [text](link)
+        if(tokens) {
+            for(let token of tokens) if(!regex.test(token))
+                errors.ansText = "Hyperlink in answer text invalid. Must be of the form [text](link).";
+        }
+        if(commentUser.length === 0) errors.commentUser = emptyFieldStr;
+        return errors;
+    }
+
     return (
         <div id={answer.aid} className='answer-container'>
             <div className="votes">
@@ -78,13 +116,28 @@ function Answer({answer}) {
                 }}>🡇</p>
             </div>
             <div className='answer-text'><Text text={answer.text} /></div>
-            <div className='answer-metadata'><AnswerDateMetadata answer={answer}/></div>
+            <DateMetadata answer={answer}/>
+            {/* <div className="answer-comment-container">
+                <div className="answer-comments">
+                    {console.log(answer.comments)}
+                    {answer.comments.map((c) => <div>{c.text}</div>)}
+                </div>
+                {comments
+                    ? <form id='post-comment' onSubmit={handleSubmit}>
+                        <input type='text' name='commenttext' />
+                        {formErrors.commentText && <ErrorMessage errMsg={formErrors.commentText} />}
+                        <input type='text' name='commentuser' />
+                        {formErrors.commentUser && <ErrorMessage errMsg={formErrors.commentUser} />}
+                        <input type='submit' value="Post Comment" />
+                    </form>
+                    : <div id="add-comment-container"><button id="add-comment" type="button" onClick={() => {setComments(!comments)}}>Add Comment</button></div>
+                }
+            </div> */}
         </div>
     )
 }
 
 export function Text(props) {
-
     let text = props.text;
     let tokens = text.match(/(\[.+?\]\((https:\/\/|http:\/\/)[^)](.*?)\))|\s?\w+\s?|\s?.+?\s?/g);
     const regex = /\[.+?\]\((https:\/\/|http:\/\/)[^)](.*?)\)/g;
@@ -104,32 +157,11 @@ function Hyperlink(props) {
     let refBegin = token.indexOf(']') + 2;
     let refEnd = token.indexOf(')', refBegin);
     let ref = token.slice(refBegin, refEnd);
-
     return <a href={ref} target="_blank" rel="noreferrer">{title}</a>
 }
 
-function AnswerDateMetadata(props) {
-    const a = props.answer;
-    const time_now = new Date();
-    const time_answered = new Date(a.ansDate);
-    const time_ago = time_now - time_answered;
-    const minutes_ago = 1000 * 60;
-    const hours_ago = minutes_ago * 60;
-    const days_ago = hours_ago * 24;
-    const years_ago = days_ago * 365;
-    let ans_time = "";
-    if(time_ago > years_ago) ans_time = a.ansBy + " answered " + time_answered.toLocaleString('en-US', { month: 'long', day: 'numeric', 
-        year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false});
-    else if(time_ago > days_ago) ans_time = a.ansBy + " answered " + time_answered.toLocaleString('en-US', { month: 'long' }) + " " + time_answered.getDate() + 
-        " at " + time_answered.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false});
-    else if(time_ago > hours_ago) ans_time = a.ansBy + " answered " + Math.round((time_now - time_answered)/(1000 * 60 * 60)) + " hours ago";
-    else if(time_ago > minutes_ago) ans_time = a.ansBy + " answered " + Math.round((time_now - time_answered)/(1000 * 60)) + " minutes ago";
-    else ans_time = a.ansBy + " answered " + Math.round((time_now - time_answered)/(1000)) + " seconds ago";
-    return <p>{ans_time}</p>
-}
-
-export function AnswerNav(props) {
-    const answerChunks = splitArray(props.ans);
+function AnswerNav(props) {
+    const answerChunks = splitArray(props.ans, 5);
     const setDisplayedAnswers = props.setDisplayedAnswers;
     
     return (
