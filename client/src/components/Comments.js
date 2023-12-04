@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useContext, useState, useEffect } from "react";
+import { QuestionsInfo } from "./HomePage";
 import { DateMetadata, splitArray } from "./QuestionsPage";
 import { ErrorMessage } from "./PostQuestionPage";
 import { Text } from "./SeeAnswers";
@@ -79,8 +80,11 @@ export default function Comments(props) {
     }
 
     return (
-        <div className="comments">
-            {currDisplayedComments.map((c) => <Comment key={c.cid} comment={c} />)}
+        <div className="question-comment-container">
+            <div className="question-comment">
+                {console.log(currDisplayedComments)}
+                {currDisplayedComments.map((c) => <Comment key={c.cid} comment={c} />)}
+            </div>
             {insertComment
                 ? <form id='post-comment' onSubmit={handleSubmit}>
                     <input type='text' name='commenttext' />
