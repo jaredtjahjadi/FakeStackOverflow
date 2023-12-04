@@ -73,9 +73,7 @@ app.get('/', (req,res) => {
 
     // Session for the user still exists
     if(req.session.email)
-        return res.status(200).send({
-            email: req.session.email
-        })
+        res.status(200).send()
 
     // Session expired
     else
@@ -118,20 +116,28 @@ app.post('/login', async (req, res) => {
 
     // Password must be correct
     const verdict = await bcrypt.compare(req.body.password, user.passwordHash)
-    console.log(verdict)
     if(!verdict) {
         return res.status(403).send({
             message: "The password is incorrect."
         })
     }
 
-    req.session.email = req.body.email.trim()
-    return res.status(200).send()
+    req.session.user = {
+        username: user.username,
+        email: req.body.email.trim(),
+        role: user.role
+    }
+    
+    res.status(200).send()
 })
 
 /*
     Routes for the main fake_so page
 */
+
+app.get('/username', (req, res) => {
+    res.send(req.session.user.username)
+})
 
 app.get('/newestQuestions', (req, res) => {
     Question.find({}).sort({ask_date_time: -1}).exec()
@@ -187,6 +193,15 @@ app.get('/:questionId/comments', async (req, res) => {
     Comment.find({_id: {$in: q.comments}}).exec().then(comments => {
         comments = formatComments(comments);
         res.send(comments);
+    })
+})
+
+app.post('/logout', async (req, res) => {
+    req.session.destroy(err => {
+        if(err)
+            res.status(500).send('Logout failed. Please try again later.')
+        else
+            res.status(200).send()
     })
 })
 
