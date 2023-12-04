@@ -162,7 +162,6 @@ app.get('/unansweredQuestions', (req, res) => {
 })
 
 app.get('/answers/:questionId', async (req, res) => {
-    // console.log(req.params.questionId);
     const q = await Question.findById(req.params.questionId);
     Answer.find({_id: {$in: q.answers}}).exec().then(answers => {
         answers = formatAnswers(answers);
@@ -183,15 +182,12 @@ app.get('/tags', (req, res) => {
     catch (error) { console.error(error) }
 })
 
-app.get('/comments', (req, res) => {
-    const commentIds = Object.values(req.query)
-    try {
-        Comment.find({ _id: {$in: commentIds}}).exec().then(comments => {
-            comments = formatComments(comments)
-            console.log(comments)
-            res.send(comments)
-        })
-    } catch(error) { console.error(error) }
+app.get('/:questionId/comments', async (req, res) => {
+    const q = await Question.findById(req.params.questionId);
+    Comment.find({_id: {$in: q.comments}}).exec().then(comments => {
+        comments = formatComments(comments);
+        res.send(comments);
+    })
 })
 
 // All tags (for tags page)
@@ -295,9 +291,7 @@ app.post('/addQuestion', (req, res) => {
                     const question = new Question(data)
                     question.save()
                 })
-        } catch (error) {
-            console.log(error)
-        }
+        } catch (error) { console.log(error) }
     }
 
     addQuestion()

@@ -1,10 +1,9 @@
 import React, { useContext, useEffect, Fragment, useState } from 'react';
 import { QuestionsInfo } from './HomePage';
 import { AskQuestion } from './body';
-import { QuestionDateMetadata, splitArray } from './questionspage';
+import { DateMetadata, splitArray } from './questionspage';
 import * as Constants from '../constants';
 import axios from 'axios';
-import { ErrorMessage } from './PostQuestionPage';
 
 let answerChunkInd = 0;
 
@@ -46,7 +45,7 @@ export function SeeAnswers() {
                 <div id='question-metadata-bottom'>
                     <div id='num-views'>{currDisplayedQuestion.views} views</div>
                     <div id='question-metadata-text'><Text text={currDisplayedQuestion.text} /></div>
-                    <div id='asked-by'><QuestionDateMetadata question={currDisplayedQuestion} /></div>
+                    <div id='asked-by'><DateMetadata question={currDisplayedQuestion} /></div>
                 </div>
             </div>
             <div id='answers'>{currDisplayedAnswers.map((ans) => <Answer key={ans.aid} answer={ans} />)}</div>
@@ -117,7 +116,7 @@ function Answer({answer}) {
                 }}>🡇</p>
             </div>
             <div className='answer-text'><Text text={answer.text} /></div>
-            <div className='answer-metadata'><AnswerDateMetadata answer={answer}/></div>
+            <DateMetadata answer={answer}/>
             {/* <div className="answer-comment-container">
                 <div className="answer-comments">
                     {console.log(answer.comments)}
@@ -139,7 +138,6 @@ function Answer({answer}) {
 }
 
 export function Text(props) {
-
     let text = props.text;
     let tokens = text.match(/(\[.+?\]\((https:\/\/|http:\/\/)[^)](.*?)\))|\s?\w+\s?|\s?.+?\s?/g);
     const regex = /\[.+?\]\((https:\/\/|http:\/\/)[^)](.*?)\)/g;
@@ -159,32 +157,11 @@ function Hyperlink(props) {
     let refBegin = token.indexOf(']') + 2;
     let refEnd = token.indexOf(')', refBegin);
     let ref = token.slice(refBegin, refEnd);
-
     return <a href={ref} target="_blank" rel="noreferrer">{title}</a>
 }
 
-function AnswerDateMetadata(props) {
-    const a = props.answer;
-    const time_now = new Date();
-    const time_answered = new Date(a.ansDate);
-    const time_ago = time_now - time_answered;
-    const minutes_ago = 1000 * 60;
-    const hours_ago = minutes_ago * 60;
-    const days_ago = hours_ago * 24;
-    const years_ago = days_ago * 365;
-    let ans_time = "";
-    if(time_ago > years_ago) ans_time = a.ansBy + " answered " + time_answered.toLocaleString('en-US', { month: 'long', day: 'numeric', 
-        year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false});
-    else if(time_ago > days_ago) ans_time = a.ansBy + " answered " + time_answered.toLocaleString('en-US', { month: 'long' }) + " " + time_answered.getDate() + 
-        " at " + time_answered.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false});
-    else if(time_ago > hours_ago) ans_time = a.ansBy + " answered " + Math.round((time_now - time_answered)/(1000 * 60 * 60)) + " hours ago";
-    else if(time_ago > minutes_ago) ans_time = a.ansBy + " answered " + Math.round((time_now - time_answered)/(1000 * 60)) + " minutes ago";
-    else ans_time = a.ansBy + " answered " + Math.round((time_now - time_answered)/(1000)) + " seconds ago";
-    return <p>{ans_time}</p>
-}
-
-export function AnswerNav(props) {
-    const answerChunks = splitArray(props.ans);
+function AnswerNav(props) {
+    const answerChunks = splitArray(props.ans, 5);
     const setDisplayedAnswers = props.setDisplayedAnswers;
     
     return (

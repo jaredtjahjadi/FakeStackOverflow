@@ -15,6 +15,8 @@ export default function HomePage() {
   const [currDisplayedQuestion, setDisplayedQuestion] = useState([]) // SHOULD PROBABLY BE MOVED TO SEE ANSWERS INSTEAD
   const [allAnswers, setAllAnswers] = useState([]);
   const [currDisplayedAnswers, setDisplayedAnswers] = useState([]);
+  const [allComments, setAllComments] = useState([]);
+  const [currDisplayedComments, setDisplayedComments] = useState([]);
   
   /*
     By using useEffect, the GET request for questions will always be done after every rendering.
@@ -92,7 +94,11 @@ export default function HomePage() {
             allAnswers,
             setAllAnswers,
             currDisplayedAnswers,
-            setDisplayedAnswers
+            setDisplayedAnswers,
+            allComments,
+            setAllComments,
+            currDisplayedComments,
+            setDisplayedComments
           }
         }>
           <div id="header" className="header">
