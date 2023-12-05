@@ -9,9 +9,9 @@ export default function FormField(props) {
             }
             {props.input ? 
                 <input className='input-text' type='text' name={props.name} 
-                    value={props.value ? props.value : ''} onChange={props.onChange ? props.onChange : null}/> :
+                    value={props.value ? props.value : undefined} onChange={props.onChange ? props.onChange : undefined}/> :
                 <textarea className='input-text' type='text' name={props.name} 
-                    value={props.value ? props.value : ''} onChange={props.onChange ? props.onChange : null}/>
+                    value={props.value ? props.value : undefined} onChange={props.onChange ? props.onChange : undefined}/>
             }
         </div>
     )

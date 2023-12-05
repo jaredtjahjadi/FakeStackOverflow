@@ -93,7 +93,7 @@ function Question({question}) {
                 .then(res => { setTags(res.data) })
             }
             getTags();
-    }, [question])
+    })
     
     return (
         <div className="question">
@@ -133,7 +133,7 @@ function Question({question}) {
                     }}>
                         {question.title} 
                     </div>
-
+                    <div className="question-summary">{question.summary}</div>
                     <div id={currTagsContainer} className='tags-container'>{tags.map((t) => <div key={t.tid} className='tags'>{t.name}</div>)}</div>
                 </div>
                 <DateMetadata question={question} />
@@ -149,17 +149,17 @@ export function DateMetadata(props) {
     let c = props.comment;
     let time_now = new Date();
     let time_posted, posted_by, str;
-    if(q) {
+    if(q) { // Question
         time_posted = new Date(q.askDate);
         posted_by = q.askedBy;
         str = " asked ";
     }
-    if(a) {
+    if(a) { // Answer
         time_posted = new Date(a.ansDate);
         posted_by = a.ansBy;
         str = " answered "
     }
-    if(c) {
+    if(c) { // Comment
         time_posted = new Date(c.comDate);
         posted_by = c.comBy;
         str = " commented "
@@ -180,7 +180,7 @@ export function DateMetadata(props) {
         " at " + time_posted.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false});
     else if(time_ago > hours_ago) post_time = posted_by + str + num_hours + " hour" + ((num_hours === 1) ? "" : "s") + " ago";
     else if(time_ago > minutes_ago) post_time = posted_by + str + num_mins + " minute" + ((num_mins === 1) ? "" : "s") + " ago";
-    else post_time = posted_by + str + num_secs + " second" + ((num_secs === 1) ? "" : "s") + " ago";
+    else post_time = posted_by + str + ((num_secs === 0) ? "just now" : num_secs + " second" + ((num_secs === 1) ? "" : "s") + " ago");
     return ( <div className='time'>{post_time}</div> )
 }
 
