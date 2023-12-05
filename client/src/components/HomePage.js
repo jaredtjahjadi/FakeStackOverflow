@@ -33,40 +33,41 @@ export default function HomePage({setLoggedIn}) {
   // const [currDisplayedComments, setDisplayedComments] = useState([]);
   const [username, setUsername] = useState("");
   
+  const getNewestQuestions = async () => {
+    await axios.get('http://localhost:8000/newestQuestions')
+    .then(res => {
+      const questions = res.data;
+      setAllQuestions(questions);
+      setDisplayedQuestions(questions.slice(0, 5));
+      setNumQuestions(questions.length)
+    })
+  }
+  
+  const getActiveQuestions = async () => {
+    await axios.get('http://localhost:8000/activeQuestions')
+      .then(res => {
+        const questions = res.data;
+        setAllQuestions(questions);
+        setDisplayedQuestions(questions.slice(0, 5));
+        setNumQuestions(questions.length)
+      })
+  }
+  
+  const getUnansweredQuestions = async () => {
+    await axios.get('http://localhost:8000/unansweredQuestions')
+      .then(res => {
+        const questions = res.data;
+        setAllQuestions(questions);
+        setDisplayedQuestions(questions.slice(0, 5));
+        setNumQuestions(questions.length)
+      })
+  }
+
   // This useEffect is done to conditionally render specific questions based on the current filter.
 
   useEffect(() => {
 
     // Define the requests to make based on the current filter to be applied
-    const getNewestQuestions = async () => {
-        await axios.get('http://localhost:8000/newestQuestions')
-        .then(res => {
-          const questions = res.data;
-          setAllQuestions(questions);
-          setDisplayedQuestions(questions.slice(0, 5));
-          setNumQuestions(questions.length)
-        })
-    }
-
-    const getActiveQuestions = async () => {
-      await axios.get('http://localhost:8000/activeQuestions')
-        .then(res => {
-          const questions = res.data;
-          setAllQuestions(questions);
-          setDisplayedQuestions(questions.slice(0, 5));
-          setNumQuestions(questions.length)
-        })
-    }
-
-    const getUnansweredQuestions = async () => {
-      await axios.get('http://localhost:8000/unansweredQuestions')
-        .then(res => {
-          const questions = res.data;
-          setAllQuestions(questions);
-          setDisplayedQuestions(questions.slice(0, 5));
-          setNumQuestions(questions.length)
-        })
-    }
 
     switch(currFilter) {
       case Constants.NEWEST_FILTER:
@@ -117,6 +118,7 @@ export default function HomePage({setLoggedIn}) {
             setTypeResults,
             currDisplayedQuestion,
             setDisplayedQuestion,
+            getNewestQuestions,
             // allAnswers,
             // setAllAnswers,
             // currDisplayedAnswers,

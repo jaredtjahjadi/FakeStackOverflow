@@ -340,7 +340,6 @@ app.post('/addQuestion', (req, res) => {
 })
 
 app.post('/modifyQuestion', (req, res) => {
-    console.log("HERE")
     async function modifyQuestion() {
         try {
             let tags = await Tag.find({name: {$in: req.body.tags}})
