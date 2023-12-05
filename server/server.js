@@ -133,7 +133,6 @@ app.post('/login', async (req, res) => {
 */
 
 app.get('/userProfile', (req,res) => {
-
     User.findOne({username: req.session.username}).exec()
         .then(user => {
             res.send({
@@ -141,6 +140,13 @@ app.get('/userProfile', (req,res) => {
                 reputation: user.reputation,
                 timeJoined: user.timeJoined
             })
+        })
+})
+
+app.get('/postedQuestions', (req, res) => {
+    Question.find({asked_by: req.session.username}).exec()
+        .then(questions => {
+            res.send(questions)
         })
 })
 
@@ -331,6 +337,29 @@ app.post('/addQuestion', (req, res) => {
     }
 
     addQuestion()
+})
+
+app.post('/modifyQuestion', (req, res) => {
+    console.log("HERE")
+    async function modifyQuestion() {
+        try {
+            let tags = await Tag.find({name: {$in: req.body.tags}})
+            tags = tags.map(tag => tag._id)
+            //console.log(tags)
+
+            req.body.tags = tags
+
+            console.log(req.body)
+
+            await Question.findOneAndUpdate({_id: req.body._id}, 
+                {$set: req.body})
+                .then(res => 
+                    console.log(res))
+            res.status(200).send()
+        } catch(error) {console.log(error)}
+    }
+
+    modifyQuestion()
 })
 
 app.post('/postAnswer', (req, res) => {

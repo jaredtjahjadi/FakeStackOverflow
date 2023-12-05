@@ -21,7 +21,11 @@ export default function Body() {
 
 export function Main() {
     let mainContent;
-    const currPage = useContext(QuestionsInfo).currPage;
+
+    const questionsInfo = useContext(QuestionsInfo);
+    const currPage = questionsInfo.currPage;
+    const setCurrPage = questionsInfo.setCurrPage;
+    const setDisplayedQuestion = questionsInfo.setDisplayedQuestion;
 
     switch(currPage) {
         case Constants.POST_QUESTION_PAGE:
@@ -40,7 +44,10 @@ export function Main() {
             mainContent = <PostAnswerPage />;
             break;
         case Constants.USER_PROFILE:
-            mainContent = <UserProfile />;
+            mainContent = <UserProfile setCurrPage={setCurrPage} setDisplayedQuestion={setDisplayedQuestion}/>;
+            break;
+        case Constants.MODIFY_QUESTION_PAGE:
+            mainContent = <PostQuestionPage />;
             break;
         default:
             mainContent = <QuestionsPage />;
@@ -79,6 +86,13 @@ export function Menu() {
                 onClick={() => setCurrPage(Constants.TAGS_PAGE)}
             >
                 Tags
+            </div>
+            <div
+                onClick={async () => {
+                    setCurrPage(Constants.USER_PROFILE)
+                }}
+            >
+                User Profile
             </div>
             <div
                 onClick={async () => {

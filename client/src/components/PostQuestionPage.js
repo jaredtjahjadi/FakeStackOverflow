@@ -1,16 +1,70 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import FormField from './FormField';
 import * as Constants from '../constants';
-// import { model } from './fakestackoverflow';
 import { QuestionsInfo } from './HomePage';
 import axios from 'axios'
+
+/**
+ * FOR JARED (VERY IMPORTANT)
+ * 
+ * I realized that modifying a question is the same form as the PostQuestion form, 
+ * so this component could be used for both purposes.
+ * 
+ * The idea here is that we check the page to see if we are either modifying or
+ * posting. If we're posting, then we can proceed as usual when you did earlier
+ * homeworks. If we're modifying, then we add a Delete Question button and fill
+ * the fields with the question being modified using states to keep track of the
+ * modifications using conditional rendering. We'll also use the boolean isModifiying
+ * to choose whether to use the inputted data to make a new question or modify a 
+ * question.
+ * 
+ * Don't worry about the warning regarding values and onChange. That has to do
+ * with the Username component which we'll remove later.
+ * 
+ * TLDR It would've been messy to make a new form that does almost the same exact
+ * thing so I borrowed your component to make my life easier :3
+ * 
+ * - @author el torino 
+ * (wow I forgot I can do that with jsdoc)
+ */
 
 export default function PostQuestionPage() {
     const emptyFieldStr = "This field must be filled out."
     const questionsInfo = useContext(QuestionsInfo);
     const setCurrPage = questionsInfo.setCurrPage;
     const setCurrFilter = questionsInfo.setCurrFilter;
+    const currDisplayedQuestion = questionsInfo.currDisplayedQuestion
     const [formErrors, setFormErrors] = useState({});
+
+    // Decides certain display depending on either posting or modifying
+    const isModifying = questionsInfo.currPage === Constants.MODIFY_QUESTION_PAGE;
+
+    /**
+     * These states are used to modify the inputs of the form if the form is used for
+     * modification rather than posting a new question.
+     */
+
+    const [questionTitle, setQuestionTitle] = useState(currDisplayedQuestion.title)
+    const [questionText, setQuestionText] = useState(currDisplayedQuestion.text)
+    const [questionTags, setQuestionTags] = useState(currDisplayedQuestion.tags)
+
+    /**
+     * We retrieve the tags and convert it to string format to insert into the Tags form.
+     */
+
+    useEffect(() => {
+        const getTags = async () => {
+            await axios.get('http://localhost:8000/tags', {params: currDisplayedQuestion.tags})
+                .then(res => {
+                    let tagsInput = ""
+                    res.data.map(tag => tagsInput += tag.name + " ")
+                    console.log(tagsInput.trim())
+                    setQuestionTags(tagsInput)
+                })
+        }
+        
+        getTags();
+    }, [currDisplayedQuestion])
 
     const handleSubmit = async (event) => {
         event.preventDefault(); // Stop the page from refreshing
@@ -24,17 +78,6 @@ export default function PostQuestionPage() {
         // If no errors in form (all fields are valid)
         if(Object.keys(errors).length === 0) {
             try {
-                const questionData = {
-                    title: questionTitle,
-                    text: questionText,
-                    tags: questionTags,
-                    answers: [],
-                    asked_by: questionUsername,
-                    ask_date_time: new Date(),
-                    views: 0,
-                    votes: 0,
-                    comments: []
-                }
                 /**
                  * TODO (Jared)
                  * Fix issue: Upon submit, the questions page loads with newest filter, but the question that was
@@ -45,7 +88,30 @@ export default function PostQuestionPage() {
                 setCurrFilter(Constants.NEWEST_FILTER);
                 event.target.reset();
                 setFormErrors({});
-                await axios.post('http://localhost:8000/addQuestion', questionData);
+                if(isModifying) {
+                    const questionData = {
+                        _id: currDisplayedQuestion._id,
+                        title: questionTitle,
+                        text: questionText,
+                        tags: questionTags,
+                    }
+                    await axios.post('http://localhost:8000/modifyQuestion', questionData)
+                }
+                
+                else {
+                    const questionData = {
+                        title: questionTitle,
+                        text: questionText,
+                        tags: questionTags,
+                        answers: [],
+                        asked_by: questionUsername,
+                        ask_date_time: new Date(),
+                        views: 0,
+                        votes: 0,
+                        comments: []
+                    }
+                    await axios.post('http://localhost:8000/addQuestion', questionData);
+                }
             } catch (error) { console.log(error); }
         } else setFormErrors(errors);
     }
@@ -76,7 +142,7 @@ export default function PostQuestionPage() {
             if((lower !== "shared-preferences" || lower !== "web-scripting" || lower !== "android-studio") && lower.length > 10)
                 if(lower.length > 10) errors.questionTags = "Tag length must be no more than 10 characters.";
         }
-        if(questionUsername.length === 0) errors.questionUsername = emptyFieldStr;
+        //if(questionUsername.length === 0) errors.questionUsername = emptyFieldStr;
         return errors;
     };
 
@@ -92,6 +158,9 @@ export default function PostQuestionPage() {
                     instrs="Limit title to 100 characters or less"
                     input={true}
                     name='title'
+                    
+                    value={isModifying ? questionTitle : null}
+                    onChange={isModifying ? (event) => setQuestionTitle(event.target.value) : null}
                 />
                 {formErrors.questionTitle && <ErrorMessage errMsg={formErrors.questionTitle} />}
                 <FormField
@@ -100,6 +169,9 @@ export default function PostQuestionPage() {
                     instrs="Add details"
                     input={false}
                     name='qtext'
+                    
+                    value={isModifying ? questionText : null}
+                    onChange={isModifying ? (event) => setQuestionText(event.target.value) : null}
                 />
                 {formErrors.questionText && <ErrorMessage errMsg={formErrors.questionText} />}
                 <FormField
@@ -108,6 +180,9 @@ export default function PostQuestionPage() {
                     instrs="Add keywords separated by whitespace"
                     input={true}
                     name='tags'
+                    
+                    value={isModifying ? questionTags : null}
+                    onChange={isModifying ? (event) => setQuestionTags(event.target.value) : null}
                 />
                 {formErrors.questionTags && <ErrorMessage errMsg={formErrors.questionTags} />}
                 <FormField
@@ -119,6 +194,7 @@ export default function PostQuestionPage() {
                 {formErrors.questionUsername && <ErrorMessage errMsg={formErrors.questionUsername} />}
                 <div id="end-form">
                     <input className="submit-button" type="submit" value="Post Question" />
+                    {isModifying && <input className="submit-button" type="submit" value="Delete Question" />}
                     <div id="mandatory-fields">* indicates mandatory fields</div>
                 </div>
             </form>
