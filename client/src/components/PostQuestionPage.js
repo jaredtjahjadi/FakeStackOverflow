@@ -1,7 +1,7 @@
 import { useContext, useState, useEffect } from 'react';
 import FormField from './FormField';
 import * as Constants from '../constants';
-import { QuestionsInfo } from './HomePage';
+import { QuestionsInfo, getNewestQuestions } from './HomePage';
 import axios from 'axios'
 
 /**
@@ -32,7 +32,7 @@ export default function PostQuestionPage() {
     const emptyFieldStr = "This field must be filled out."
     const questionsInfo = useContext(QuestionsInfo);
     const setCurrPage = questionsInfo.setCurrPage;
-    const setCurrFilter = questionsInfo.setCurrFilter;
+    const getNewestQuestions = questionsInfo.getNewestQuestions
     const currDisplayedQuestion = questionsInfo.currDisplayedQuestion
     const [formErrors, setFormErrors] = useState({});
 
@@ -83,9 +83,11 @@ export default function PostQuestionPage() {
                  * Fix issue: Upon submit, the questions page loads with newest filter, but the question that was
                  * just submitted does not appear. In the below section, putting setCurrPage and setCurrFilter under
                  * the Axios post request does not seem to work.
+                 * 
+                 * EDIT: FIXED, passing in the getNewestQuestions in the context and calling it refreshes it now.
                  */
                 setCurrPage(Constants.QUESTIONS_PAGE);
-                setCurrFilter(Constants.NEWEST_FILTER);
+                // setCurrFilter(Constants.NEWEST_FILTER);
                 event.target.reset();
                 setFormErrors({});
                 if(isModifying) {
@@ -112,6 +114,8 @@ export default function PostQuestionPage() {
                     }
                     await axios.post('http://localhost:8000/addQuestion', questionData);
                 }
+
+                await getNewestQuestions()
             } catch (error) { console.log(error); }
         } else setFormErrors(errors);
     }
