@@ -332,6 +332,7 @@ app.post('/addQuestion', (req, res) => {
                     data.tags = tagIds;
                     const question = new Question(data)
                     question.save()
+                    res.status(200).send()
                 })
         } catch (error) { console.log(error) }
     }
@@ -342,13 +343,20 @@ app.post('/addQuestion', (req, res) => {
 app.post('/modifyQuestion', (req, res) => {
     async function modifyQuestion() {
         try {
-            let tags = await Tag.find({name: {$in: req.body.tags}})
+            let tags = []
+
+            for(let tagName of req.body.tags) {
+                let foundTag = await Tag.findOne({name: tagName})
+                if(foundTag == null) {
+                    const newTag = new Tag({name: tagName})
+                    newTag.save()
+                    tags.push(newTag._id)
+                }
+                else
+                    tags.push(foundTag._id)
+            }
             tags = tags.map(tag => tag._id)
-            //console.log(tags)
-
-            req.body.tags = tags
-
-            console.log(req.body)
+            req.body.tags = tags;
 
             await Question.findOneAndUpdate({_id: req.body._id}, 
                 {$set: req.body})
@@ -359,6 +367,17 @@ app.post('/modifyQuestion', (req, res) => {
     }
 
     modifyQuestion()
+})
+
+app.post('/deleteQuestion', (req, res) => {
+    async function deleteQuestion() {
+        try {
+            const q = await Question.findByIdAndDelete(req.body._id)
+            res.status(200).send()
+        } catch(error) {console.log(error)}
+    }
+
+    deleteQuestion()
 })
 
 app.post('/postAnswer', (req, res) => {

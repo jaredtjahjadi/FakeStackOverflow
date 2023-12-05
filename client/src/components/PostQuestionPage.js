@@ -1,7 +1,7 @@
 import { useContext, useState, useEffect } from 'react';
 import FormField from './FormField';
 import * as Constants from '../constants';
-import { QuestionsInfo, getNewestQuestions } from './HomePage';
+import { QuestionsInfo } from './HomePage';
 import axios from 'axios'
 
 /**
@@ -58,7 +58,6 @@ export default function PostQuestionPage() {
                 .then(res => {
                     let tagsInput = ""
                     res.data.map(tag => tagsInput += tag.name + " ")
-                    console.log(tagsInput.trim())
                     setQuestionTags(tagsInput)
                 })
         }
@@ -86,8 +85,6 @@ export default function PostQuestionPage() {
                  * 
                  * EDIT: FIXED, passing in the getNewestQuestions in the context and calling it refreshes it now.
                  */
-                setCurrPage(Constants.QUESTIONS_PAGE);
-                // setCurrFilter(Constants.NEWEST_FILTER);
                 event.target.reset();
                 setFormErrors({});
                 if(isModifying) {
@@ -116,8 +113,13 @@ export default function PostQuestionPage() {
                 }
 
                 await getNewestQuestions()
+                setCurrPage(Constants.QUESTIONS_PAGE);
             } catch (error) { console.log(error); }
         } else setFormErrors(errors);
+    }
+
+    const handleDelete = async () => {
+        await axios.post('http://localhost:8000/deleteQuestion', {_id: currDisplayedQuestion._id})
     }
 
     // Form validation: Add corresponding property to errors object if an error is found
@@ -198,7 +200,7 @@ export default function PostQuestionPage() {
                 {formErrors.questionUsername && <ErrorMessage errMsg={formErrors.questionUsername} />}
                 <div id="end-form">
                     <input className="submit-button" type="submit" value="Post Question" />
-                    {isModifying && <input className="submit-button" type="submit" value="Delete Question" />}
+                    {isModifying && <input className="submit-button" type="submit" value="Delete Question" onClick={handleDelete}/>}
                     <div id="mandatory-fields">* indicates mandatory fields</div>
                 </div>
             </form>
