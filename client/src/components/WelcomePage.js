@@ -79,6 +79,7 @@ function Login({setCurrPage, setLoggedIn}) {
     
         loginUser()
             .then(() => {
+                setPassword('') // security reasons
                 setLoggedIn(true)
             })
             .catch(error => {

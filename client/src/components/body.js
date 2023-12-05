@@ -6,6 +6,7 @@ import TagsPage from './TagsPage';
 import { SeeAnswers } from './SeeAnswers';
 import { QuestionsInfo } from './HomePage';
 import PostAnswerPage from './PostAnswerPage';
+import { UserProfile } from './UserProfile';
 import axios from 'axios'
 
 export default function Body() {
@@ -20,7 +21,11 @@ export default function Body() {
 
 export function Main() {
     let mainContent;
-    const currPage = useContext(QuestionsInfo).currPage;
+
+    const questionsInfo = useContext(QuestionsInfo);
+    const currPage = questionsInfo.currPage;
+    const setCurrPage = questionsInfo.setCurrPage;
+    const setDisplayedQuestion = questionsInfo.setDisplayedQuestion;
 
     switch(currPage) {
         case Constants.POST_QUESTION_PAGE:
@@ -37,6 +42,12 @@ export function Main() {
             break;
         case Constants.POST_ANSWER_PAGE:
             mainContent = <PostAnswerPage />;
+            break;
+        case Constants.USER_PROFILE:
+            mainContent = <UserProfile setCurrPage={setCurrPage} setDisplayedQuestion={setDisplayedQuestion}/>;
+            break;
+        case Constants.MODIFY_QUESTION_PAGE:
+            mainContent = <PostQuestionPage />;
             break;
         default:
             mainContent = <QuestionsPage />;
@@ -77,7 +88,13 @@ export function Menu() {
                 Tags
             </div>
             <div
-                className={currPage === Constants.TAGS_PAGE ? "active" : undefined}
+                onClick={async () => {
+                    setCurrPage(Constants.USER_PROFILE)
+                }}
+            >
+                User Profile
+            </div>
+            <div
                 onClick={async () => {
                     await axios.post('http://localhost:8000/logout')
                     setLoggedIn(false)

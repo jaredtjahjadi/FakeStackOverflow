@@ -23,3 +23,7 @@ export const SPLASH_PAGE = 'SPLASH_PAGE';
 export const LOGIN_PAGE = 'LOGIN_PAGE';
 
 export const REGISTER_PAGE = 'REGISTER_PAGE';
+
+export const USER_PROFILE = 'USER_PROFILE'
+
+export const MODIFY_QUESTION_PAGE = 'MODIFY_QUESTION_PAGE'

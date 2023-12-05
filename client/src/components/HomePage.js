@@ -12,14 +12,28 @@ export default function HomePage({setLoggedIn}) {
   const [currDisplayedQuestions, setDisplayedQuestions] = useState([]) // For Questions Page
   const [numQuestions, setNumQuestions] = useState(allQuestions.length);
   const [typeResults, setTypeResults] = useState("All Questions");
-  const [currDisplayedQuestion, setDisplayedQuestion] = useState([]) // SHOULD PROBABLY BE MOVED TO SEE ANSWERS INSTEAD
+
+  /**
+   * FOR JARED
+   * 
+   * This is a new change so that I don't have to copy and paste the form for modifiying and
+   * deleting a question again. The currDisplayedQuestion state now not only represents
+   * the question we are looking at the answer for, but also the question that is currently 
+   * being modified on the Post Question page.
+   * 
+   * This depends on the page being displayed, and is interchangeable.
+   * 
+   * - el torino
+   */
+
+  const [currDisplayedQuestion, setDisplayedQuestion] = useState([])
   // const [allAnswers, setAllAnswers] = useState([]);
   // const [currDisplayedAnswers, setDisplayedAnswers] = useState([]);
   // const [allComments, setAllComments] = useState([]);
   // const [currDisplayedComments, setDisplayedComments] = useState([]);
   const [username, setUsername] = useState("");
   
-  //This useEffect is done to conditionally render specific questions based on the current filter.
+  // This useEffect is done to conditionally render specific questions based on the current filter.
 
   useEffect(() => {
 
@@ -115,7 +129,6 @@ export default function HomePage({setLoggedIn}) {
           }
         }>
           <div id="header" className="header">
-            <h2 id="username">{username}</h2>
             <h1 id="website-title">Fake Stack Overflow</h1>
             <SearchBar />
           </div>
