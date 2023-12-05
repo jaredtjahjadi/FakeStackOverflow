@@ -45,6 +45,7 @@ export default function PostQuestionPage() {
      */
 
     const [questionTitle, setQuestionTitle] = useState(currDisplayedQuestion.title)
+    const [questionSummary, setQuestionSummary] = useState(currDisplayedQuestion.summary)
     const [questionText, setQuestionText] = useState(currDisplayedQuestion.text)
     const [questionTags, setQuestionTags] = useState(currDisplayedQuestion.tags)
 
@@ -68,12 +69,13 @@ export default function PostQuestionPage() {
     const handleSubmit = async (event) => {
         event.preventDefault(); // Stop the page from refreshing
         const questionTitle = event.target.title.value.trim();
+        const questionSummary = event.target.summary.value.trim();
         const questionTagStr = event.target.tags.value.trim();
         const inputTags = questionTagStr.split(" ");
         const questionTags = inputTags.filter(inputTag => inputTag !== "").map(inputTag => inputTag.toLowerCase());
         const questionText = event.target.qtext.value.trim();
         const questionUsername = event.target.quser.value.trim();
-        const errors = validateForm({questionTitle, questionText, questionTagStr, questionTags, questionUsername});
+        const errors = validateForm({questionTitle, questionSummary, questionText, questionTagStr, questionTags, questionUsername});
         // If no errors in form (all fields are valid)
         if(Object.keys(errors).length === 0) {
             try {
@@ -91,6 +93,7 @@ export default function PostQuestionPage() {
                     const questionData = {
                         _id: currDisplayedQuestion._id,
                         title: questionTitle,
+                        summary: questionSummary,
                         text: questionText,
                         tags: questionTags,
                     }
@@ -100,6 +103,7 @@ export default function PostQuestionPage() {
                 else {
                     const questionData = {
                         title: questionTitle,
+                        summary: questionSummary,
                         text: questionText,
                         tags: questionTags,
                         answers: [],
@@ -109,7 +113,7 @@ export default function PostQuestionPage() {
                         votes: 0,
                         comments: []
                     }
-                    await axios.post('http://localhost:8000/addQuestion', questionData);
+                    await axios.post('http://localhost:8000/addQuestion', questionData)
                 }
 
                 await getNewestQuestions()
@@ -123,23 +127,24 @@ export default function PostQuestionPage() {
     }
 
     // Form validation: Add corresponding property to errors object if an error is found
-    const validateForm = ({ questionTitle, questionText, questionTagStr, questionTags, questionUsername }) => {
+    const validateForm = ({ questionTitle, questionSummary, questionText, questionTagStr, questionTags, questionUsername }) => {
         const errors = {};
 
         // Title validation
         if (questionTitle.length === 0) errors.questionTitle = emptyFieldStr;
         else if (questionTitle.length > 100) errors.questionTitle = "Question title must be no more than 100 characters.";
+
+        // Summary validation
+        if(questionSummary.length === 0) errors.questionTile = emptyFieldStr;
+        else if (questionSummary.length > 140) errors.questionSummary = "Question summary must be no more than 140 characters.";
     
         // Text validation
         if (questionText.length === 0) errors.questionText = emptyFieldStr;
         // Hyperlink validation
         const tokens = questionText.match(/\[[^\]]*\]\([^)]*\)/g); // [...](...). "..." = anything (including empty string)
         const regex = /\[.+?\]\((https:\/\/|http:\/\/)[^)](.*?)\)/g; // [text](link)
-        // If potential hyperlinks are present in the question text
-        if(tokens) {
-            for(let token of tokens) if(!regex.test(token))
-                errors.questionText = "Hyperlink in question text invalid. Must be of the form [text](link).";
-        }
+        // If potential hyperlinks are present in the question text, test them if they are valid against the regex
+        if(tokens) for(let token of tokens) if(!regex.test(token)) errors.questionText = "Hyperlink in question text invalid. Must be of the form [text](link).";
         if(questionTagStr.length === 0) errors.questionTags = emptyFieldStr;
         if(questionTags.length > 5) errors.questionTags = "No more than five tags for one question."; // Ensure there are no more than 5 tags
         // Ensure each tag is no more than 10 characters
@@ -169,6 +174,16 @@ export default function PostQuestionPage() {
                     onChange={isModifying ? (event) => setQuestionTitle(event.target.value) : null}
                 />
                 {formErrors.questionTitle && <ErrorMessage errMsg={formErrors.questionTitle} />}
+                <FormField
+                    id="question-summary"
+                    title="Question Summary"
+                    input={false}
+                    name='summary'
+                    
+                    value={isModifying ? questionSummary : null}
+                    onChange={isModifying ? (event) => setQuestionSummary(event.target.value) : null}
+                />
+                {formErrors.questionText && <ErrorMessage errMsg={formErrors.questionText} />}
                 <FormField
                     id="question-text"
                     title="Question Text"

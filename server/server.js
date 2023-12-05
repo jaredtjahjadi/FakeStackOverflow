@@ -48,9 +48,7 @@ let db = mongoose.connection;
 // Bind connection to error event (to get notification of connection errors)
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
-app.listen(port, () => {
-    console.log(`fake_so app on port ${port}`)
-})
+app.listen(port, () => { console.log(`fake_so app on port ${port}`) })
 
 app.use(express.json())
 
@@ -70,14 +68,8 @@ const ADMIN = 'ADMIN'
 */
 
 app.get('/', (req,res) => {
-
-    // Session for the user still exists
-    if(req.session.username)
-        res.status(200).send()
-
-    // Session expired
-    else
-        return res.status(401).send()
+    if(req.session.username) res.status(200).send() // Session for the user still exists
+    else return res.status(401).send() // Session expired
     
 })
 
@@ -145,9 +137,7 @@ app.get('/userProfile', (req,res) => {
 
 app.get('/postedQuestions', (req, res) => {
     Question.find({asked_by: req.session.username}).exec()
-        .then(questions => {
-            res.send(questions)
-        })
+        .then(questions => { res.send(questions) })
 })
 
 /*
@@ -203,8 +193,7 @@ app.get('/tags', (req, res) => {
             tags = formatTags(tags)
             res.send(tags)
         })
-    }
-    catch (error) { console.error(error) }
+    } catch(error) { console.error(error) }
 })
 
 app.get('/questions/:questionId/comments', async (req, res) => {
@@ -225,10 +214,8 @@ app.get('/answers/:answerId/comments', async (req, res) => {
 
 app.post('/logout', async (req, res) => {
     req.session.destroy(err => {
-        if(err)
-            res.status(500).send('Logout failed. Please try again later.')
-        else
-            res.status(200).send()
+        if(err) res.status(500).send('Logout failed. Please try again later.')
+        else res.status(200).send()
     })
 })
 
@@ -240,7 +227,7 @@ app.get('/alltags', (req, res) => {
             res.send(tags)
         })
     }
-    catch (error) { console.error(error) }
+    catch(error) { console.error(error) }
 })
 
 // Questions for a specific tag
@@ -268,16 +255,12 @@ app.get('/searchResults', (req, res) => {
             const tag_regex = /\[[^\][]*\]/g;
             
             let tags = input.match(tag_regex);
-            if(tags == null)
-                tags = [];
-            else
-                tags = tags.map(s => s.replace(/[\][]/g, ''));
+            if(tags == null) tags = [];
+            else tags = tags.map(s => s.replace(/[\][]/g, ''));
             
             let keywords = input.replace(tag_regex ,' ')
-            if(/^\s*$/.test(keywords))
-                keywords = [];
-            else
-                keywords = keywords.replace(/\s+/g, ' ').trim().split(' ');
+            if(/^\s*$/.test(keywords)) keywords = [];
+            else keywords = keywords.replace(/\s+/g, ' ').trim().split(' ');
             
             let searchResults = [];
 
@@ -288,9 +271,7 @@ app.get('/searchResults', (req, res) => {
 
             for(let q of questions) {
                 let curr_tags = q.tags.map(t => t.toString())
-                if(curr_tags.some(t => tagIds.includes(t))) {
-                    searchResults.push(q)
-                }
+                if(curr_tags.some(t => tagIds.includes(t))) searchResults.push(q)
 
                 else if(keywords.some(k => q.title.toLowerCase().indexOf(k.toLowerCase()) > -1 || q.text.toLowerCase().indexOf(k.toLowerCase()) > -1))
                     searchResults.push(q)
@@ -299,7 +280,6 @@ app.get('/searchResults', (req, res) => {
             searchResults = formatQuestions(searchResults)
             res.send(searchResults)
         }
-
         getSearchResults()
     }
 })
@@ -317,10 +297,7 @@ app.post('/addQuestion', (req, res) => {
                 .then(tags => {
                     for(t of data.tags) {
                         let tag = tags.find(tag => tag.name == t)
-                        if(tag != undefined) {
-                            tagIds.push(tag._id)
-                        }
-
+                        if(tag != undefined) tagIds.push(tag._id)
                         else {
                             // Create a new tag if not found
                             const tag = new Tag({name: t})
@@ -334,9 +311,8 @@ app.post('/addQuestion', (req, res) => {
                     question.save()
                     res.status(200).send()
                 })
-        } catch (error) { console.log(error) }
+        } catch(error) { console.log(error) }
     }
-
     addQuestion()
 })
 
@@ -356,16 +332,11 @@ app.post('/modifyQuestion', (req, res) => {
                     tags.push(foundTag._id)
             }
             tags = tags.map(tag => tag._id)
-            req.body.tags = tags;
-
-            await Question.findOneAndUpdate({_id: req.body._id}, 
-                {$set: req.body})
-                .then(res => 
-                    console.log(res))
+            req.body.tags = tags
+            await Question.findOneAndUpdate({_id: req.body._id},  {$set: req.body})
             res.status(200).send()
         } catch(error) {console.log(error)}
     }
-
     modifyQuestion()
 })
 
@@ -416,6 +387,7 @@ app.post('/postQComment', (req, res) => {
             })
             com.save();
             await Question.findByIdAndUpdate({_id: req.body.qid}, { $push: { comments: com._id }})
+            res.status(200).send();
         } catch(error) { console.log(error) }
     }
     postComment();
@@ -462,6 +434,7 @@ function formatQuestions(questions) {
         questions[i] = {
             qid: q._id,
             title: q.title,
+            summary: q.summary,
             text: q.text,
             tagIds: q.tags,
             askedBy: q.asked_by,
@@ -509,7 +482,7 @@ function formatComments(comments) {
             text: c.text,
             comBy: c.com_by,
             comDate: c.com_date_time,
-            votes: c. votes
+            votes: c.votes
         }
     }
     return comments;

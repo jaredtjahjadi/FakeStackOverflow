@@ -27,10 +27,6 @@ export default function HomePage({setLoggedIn}) {
    */
 
   const [currDisplayedQuestion, setDisplayedQuestion] = useState([])
-  // const [allAnswers, setAllAnswers] = useState([]);
-  // const [currDisplayedAnswers, setDisplayedAnswers] = useState([]);
-  // const [allComments, setAllComments] = useState([]);
-  // const [currDisplayedComments, setDisplayedComments] = useState([]);
   const [username, setUsername] = useState("");
   
   const getNewestQuestions = async () => {
