@@ -31,7 +31,7 @@ export default function Comments(props) {
         }
         getComments();
         return () => { isMounted = false; }
-    }, [setDisplayedComments, question, answer, setComments])
+    }, [question, answer, comments])
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -44,22 +44,27 @@ export default function Comments(props) {
                 setFormErrors({});
                 showInsertComment(!insertComment);
                 if(question) {
-                    await axios.post('http://localhost:8000/postQComment', {
+                    let comment = {
                         text: commentText,
                         com_by: commentUser,
                         com_date_time: new Date(),
                         votes: 0,
                         qid: question.qid
-                    })
+                    }
+                    
+                    await axios.post('http://localhost:8000/postQComment', comment)
+                    setComments([comment, ...comments])
                 }
                 if(answer) {
-                    await axios.post('http://localhost:8000/postAComment', {
+                    let comment = {
                         text: commentText,
                         com_by: commentUser,
                         com_date_time: new Date(),
                         votes: 0,
                         aid: answer.aid
-                    })
+                    }
+                    await axios.post('http://localhost:8000/postAComment', comment)
+                    setComments([comment, ...comments])
                 }
             } catch { console.log(errors); }
         } else setFormErrors(errors);
