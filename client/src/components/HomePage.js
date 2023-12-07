@@ -115,14 +115,6 @@ export default function HomePage({setLoggedIn}) {
             currDisplayedQuestion,
             setDisplayedQuestion,
             getNewestQuestions,
-            // allAnswers,
-            // setAllAnswers,
-            // currDisplayedAnswers,
-            // setDisplayedAnswers,
-            // allComments,
-            // setAllComments,
-            // currDisplayedComments,
-            // setDisplayedComments,
             setLoggedIn
           }
         }>

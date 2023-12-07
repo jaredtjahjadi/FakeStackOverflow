@@ -48,6 +48,15 @@ export default function PostQuestionPage() {
     const [questionSummary, setQuestionSummary] = useState(currDisplayedQuestion.summary)
     const [questionText, setQuestionText] = useState(currDisplayedQuestion.text)
     const [questionTags, setQuestionTags] = useState(currDisplayedQuestion.tags)
+    const [userInfo, setUserInfo] = useState(0);
+
+    useEffect(() => {
+        const getUserInfo = async () => {
+            const userInfo = await axios.get('http://localhost:8000/userProfile')
+            setUserInfo(userInfo.data)
+        }
+        getUserInfo()
+    })
 
     /**
      * We retrieve the tags and convert it to string format to insert into the Tags form.
@@ -107,7 +116,7 @@ export default function PostQuestionPage() {
                         text: questionText,
                         tags: questionTags,
                         answers: [],
-                        asked_by: questionUsername,
+                        asked_by: userInfo.username,
                         ask_date_time: new Date(),
                         views: 0,
                         votes: 0,
@@ -206,13 +215,6 @@ export default function PostQuestionPage() {
                     onChange={isModifying ? (event) => setQuestionTags(event.target.value) : null}
                 />
                 {formErrors.questionTags && <ErrorMessage errMsg={formErrors.questionTags} />}
-                <FormField
-                    id="question-username"
-                    title="Username"
-                    input={true}
-                    name='quser'
-                />                
-                {formErrors.questionUsername && <ErrorMessage errMsg={formErrors.questionUsername} />}
                 <div id="end-form">
                     <input className="submit-button" type="submit" value="Post Question" />
                     {isModifying && <input className="submit-button" type="submit" value="Delete Question" onClick={handleDelete}/>}

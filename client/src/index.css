@@ -263,7 +263,7 @@ body { font-family: Arial; }
 
 .time { text-align: right; }
 
-.comments { margin: 2.5% 5%; }
+.comment-container { margin: 2.5% 5%; }
 
 .comment {
     display: grid;
