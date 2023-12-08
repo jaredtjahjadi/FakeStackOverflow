@@ -117,6 +117,7 @@ app.post('/login', async (req, res) => {
     }
 
     req.session.username = user.username
+    req.session.email = user.email
     res.status(200).send()
 })
 
@@ -137,7 +138,7 @@ app.get('/userProfile', (req,res) => {
 
 app.get('/postedQuestions', (req, res) => {
     Question.find({asked_by: req.session.username}).exec()
-        .then(questions => { res.send(questions) })
+        .then(questions => { res.send(formatQuestions(questions)) })
 })
 
 /*
@@ -182,6 +183,10 @@ app.get('/answers/:questionId', async (req, res) => {
         answers = formatAnswers(answers);
         res.send(answers);
     })
+})
+
+app.get('/userAnswers/:questionId', async (req, res) => {
+    //const userAnswers = await
 })
 
 // Tags for a specific question
@@ -333,15 +338,34 @@ app.post('/modifyQuestion', (req, res) => {
             }
             tags = tags.map(tag => tag._id)
             req.body.tags = tags
-            await Question.findOneAndUpdate({_id: req.body._id},  {$set: req.body})
+            console.log(req.body)
+            await Question.findOneAndUpdate({_id: req.body.qid},  {$set: req.body})
             res.status(200).send()
         } catch(error) {console.log(error)}
     }
     modifyQuestion()
 })
 
+app.get('/answeredQuestions', (req, res) => {
+    async function getAnsweredQuestions() {
+        try {
+            let user = await User.findOne({email: req.session.email})
+            let answers = await Answer.find({ans_by: user.username})
+            let questions = await Question.find({answers: {$in: answers}}).sort({ask_date_time: -1})
+            console.log(questions)
+            console.log(formatQuestions(questions))
+            res.send(formatQuestions(questions))
+
+        } catch(error) {console.log(error)}
+    }
+
+    getAnsweredQuestions()
+})
+
 app.post('/deleteQuestion', (req, res) => {
     async function deleteQuestion() {
+
+        // DON"T FORGET TO DELETE TAGS AND ANSWERS TOO!!!!
         try {
             const q = await Question.findByIdAndDelete(req.body._id)
             res.status(200).send()
