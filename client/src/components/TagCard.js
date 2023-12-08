@@ -12,7 +12,7 @@ export default function TagCard(props) {
             .then(res => { setQuestions(res.data) })
         }
         getQuestions();
-    })
+    }, [tag])
     const questionsInfo = useContext(QuestionsInfo);
     const setCurrPage = questionsInfo.setCurrPage;
     const setCurrFilter = questionsInfo.setCurrFilter;

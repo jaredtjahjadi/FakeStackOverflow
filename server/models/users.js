@@ -9,7 +9,7 @@ const userSchema = new Schema({
     email: {type: String, required: true},
     passwordHash: {type: String, required: true},
     role: {type: String, required: true},
-    reputation: {type: Number, required: true},
+    reputation: {type: Number, required: true, default: 0},
     timeJoined: {type: Date, required: true}
 })
 

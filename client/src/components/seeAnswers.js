@@ -14,6 +14,7 @@ export function SeeAnswers() {
     const setCurrPage = questionsInfo.setCurrPage;
     const [answers, setAnswers] = useState([]);
     const [currDisplayedAnswers, setDisplayedAnswers] = useState([]);
+    const [username, setUsername] = useState('');
 
     const isUserAnswers = questionsInfo.currPage === Constants.SEE_USER_ANSWERS_PAGE;
 
@@ -34,7 +35,15 @@ export function SeeAnswers() {
         getAnswers();
 
         return () => { isMounted = false; }
-    })
+    }, [currDisplayedQuestion, answers])
+
+    useEffect(() => {
+        const getQuestionUserData = async () => {
+            await axios.get('http://localhost:8000/userData', {params: currDisplayedQuestion })
+            .then(res => { setUsername(res.data) })
+        }
+        getQuestionUserData();
+    }, [currDisplayedQuestion])
 
     return (
         <div id='see-answers-page'>
@@ -47,7 +56,7 @@ export function SeeAnswers() {
                 <div id='question-metadata-bottom'>
                     <div id='num-views'>{currDisplayedQuestion.views} views</div>
                     <div id='question-metadata-text'><Text text={currDisplayedQuestion.text} /></div>
-                    <div id='asked-by'><DateMetadata question={currDisplayedQuestion} /></div>
+                    <div id='asked-by'><DateMetadata question={currDisplayedQuestion} user={username} /></div>
                 </div>
             </div>
             <div id='answers'>{currDisplayedAnswers.map((ans) => <Answer key={ans.aid} answer={ans} />)}</div>
@@ -60,6 +69,14 @@ export function SeeAnswers() {
 }
 
 function Answer({answer}) {
+    const [username, setUsername] = useState('');
+    useEffect(() => {
+        const getAnswerUsername = async () => {
+            await axios.get('http://localhost:8000/userData', {params: answer })
+            .then(res => { setUsername(res.data) })
+        }
+        getAnswerUsername();
+    }, [answer])
     return (
         <div>
             <div id={answer.aid} className='answer-container'>
@@ -81,7 +98,7 @@ function Answer({answer}) {
                     }}>🡇</p>
                 </div>
                 <div className='answer-text'><Text text={answer.text} /></div>
-                <DateMetadata answer={answer} />
+                <DateMetadata answer={answer} user={username} />
             </div>
             <Comments answer={answer} />
         </div>
