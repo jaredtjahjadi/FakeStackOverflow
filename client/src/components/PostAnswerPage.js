@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import * as Constants from '../constants';
 import FormField from './FormField';
 import { QuestionsInfo } from './HomePage';
@@ -12,11 +12,20 @@ export default function PostAnswerPage() {
     const currDisplayedQuestion = questionsInfo.currDisplayedQuestion;
     const [formErrors, setFormErrors] = useState({});
 
+    const [userInfo, setUserInfo] = useState(0);
+
+    useEffect(() => {
+        const getUserInfo = async () => {
+            const userInfo = await axios.get('http://localhost:8000/userProfile')
+            setUserInfo(userInfo.data)
+        }
+        getUserInfo()
+    })
+
     const handleSubmit = async (event) => {
         event.preventDefault();
-        const ansUser = event.target.ansuser.value.trim();
         const ansText = event.target.anstext.value.trim();
-        const errors = validateForm({ansUser, ansText});
+        const errors = validateForm({ansText});
         //If no errors in form (all fields are valid)
         if(Object.keys(errors).length === 0) {
             try {
@@ -25,7 +34,7 @@ export default function PostAnswerPage() {
                 setFormErrors({});
                 await axios.post('http://localhost:8000/postAnswer', {
                     text: ansText,
-                    ans_by: ansUser,
+                    ans_by: userInfo.username,
                     ans_date_time: new Date(),
                     questionId: currDisplayedQuestion.qid,
                     votes: 0,
@@ -36,9 +45,8 @@ export default function PostAnswerPage() {
         else setFormErrors(errors);
     }
 
-    const validateForm = ({ansUser, ansText}) => {
-        const errors = {};
-        if(ansUser.length === 0) errors.ansUser = emptyFieldStr;    
+    const validateForm = ({ansText}) => {
+        const errors = {}; 
         if(ansText.length === 0) errors.ansText = emptyFieldStr;
         const tokens = ansText.match(/\[[^\]]*\]\([^)]*\)/g); // [...](...). "..." = anything (including empty string)
         const regex = /\[.+?\]\(\s*(https:\/\/|http:\/\/)[^)](.*?)\)/g; // [text](link)
@@ -52,8 +60,6 @@ export default function PostAnswerPage() {
     return (
         <div id="new-answer">
             <form id="new-answer-form" name="new-answer" onSubmit={handleSubmit}>
-                <FormField input={true} id="ans-username" title="Username" name="ansuser" />
-                {formErrors.ansUser && <ErrorMessage errMsg={formErrors.ansUser} />}
                 <FormField input={false} id="ans-text" title="Answer Text" name="anstext" />
                 {formErrors.ansText && <ErrorMessage errMsg={formErrors.ansText} />}
                 <div id="end-form">

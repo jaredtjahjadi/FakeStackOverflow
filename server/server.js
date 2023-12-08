@@ -201,6 +201,12 @@ app.get('/tags', (req, res) => {
     } catch(error) { console.error(error) }
 })
 
+app.get('/views', (req, res) => {
+    try {
+        res.status(200).send(req.query.views);
+    } catch(error) { console.error(error) }
+})
+
 app.get('/questions/:questionId/comments', async (req, res) => {
     const q = await Question.findById(req.params.questionId);
     Comment.find({_id: {$in: q.comments}}).exec().then(comments => {
@@ -400,7 +406,7 @@ app.post('/incAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: 
 app.post('/decAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: -1}}) })
 app.post('/incCVote', async(req, res) => { await Comment.findByIdAndUpdate({_id: req.body.cid}, {$inc: { votes: 1}}) })
 app.post('/decCVote', async(req, res) => { await Comment.findByIdAndUpdate({_id: req.body.cid}, {$inc: { votes: -1}}) })
-app.post('/incrementView', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { views: 1}}) })
+app.post('/incrementView', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { views: 0}}) })
 
 app.post('/postQComment', (req, res) => {
     async function postComment() {

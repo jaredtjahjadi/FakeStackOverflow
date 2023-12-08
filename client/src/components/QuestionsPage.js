@@ -82,34 +82,50 @@ function Question({question}) {
     const setCurrPage = questionsInfo.setCurrPage;
     const setDisplayedQuestion = questionsInfo.setDisplayedQuestion;
     const [tags, setTags] = useState([])
+    const [views, setViews] = useState(question.views)
+    const [votes, setVotes] = useState(question.votes)
 
     let qid = question.qid;
     let currTitleTagsContainer = qid + "-title-tags-container";
     let currTagsContainer = qid + "-tags-container";
 
     useEffect(() => {
-            const getTags = async () => {
-                await axios.get('http://localhost:8000/tags', {params: question.tagIds})
-                .then(res => { setTags(res.data) })
-            }
-            getTags();
-    })
-    
+        const getTags = async () => {
+            await axios.get('http://localhost:8000/tags', {params: question.tagIds})
+            .then(res => { setTags(res.data) })
+        }
+        getTags();
+    }, [question])
+
+    useEffect(() => {
+        const getViews = async() => {
+            await axios.get(`http://localhost:8000/views`, {params: question})
+            .then(res => { setViews(res.data) })
+        }
+        getViews();
+    }, [question, views])
+
     return (
         <div className="question">
             <div className="question-container">
                 <div className="votes">
                     <p className="upvote" onClick={() => {
                         const incQVote = async() => {
-                            try { await axios.post('http://localhost:8000/incQVote', question) }
+                                const q = question;
+                                setVotes(q.votes++);
+                            setDisplayedQuestion(q);
+                            try { await axios.post('http://localhost:8000/incQVote', q) }
                             catch(error) { console.log(error) }
                         }
                         incQVote();
                     }}>🡅</p>
-                    {question.votes}
+                    {votes}
                     <p className="downvote" onClick={() => {
                         const decQVote = async() => {
-                            try { await axios.post('http://localhost:8000/decQVote', question) }
+                            const q = question;
+                            setVotes(q.votes--);
+                            setDisplayedQuestion(q);
+                            try { await axios.post('http://localhost:8000/decQVote', q) }
                             catch(error) { console.log(error) }
                         }
                         decQVote();
@@ -118,17 +134,20 @@ function Question({question}) {
                 <p className='interaction-stats'>
                     {question.ansIds.length} answers
                     <br />
-                    {question.views} views
+                    {views} views
+                    {/* {question.views} views */}
                 </p>
 
                 <div id={currTitleTagsContainer} className='title-tags-container'>
                     <div className="title" onClick={() => {
                         const incrementView = async() => {
-                            try { await axios.post('http://localhost:8000/incrementView', question) }
+                            const q = question;
+                            q.views++;
+                            setDisplayedQuestion(q);
+                            try { await axios.post('http://localhost:8000/incrementView', q) }
                             catch(error) { console.log(error) }
                         }
                         incrementView();
-                        setDisplayedQuestion(question);
                         setCurrPage(Constants.SEE_ANSWERS_PAGE);
                     }}>
                         {question.title} 

@@ -48,18 +48,17 @@ export function PostedQuestions({setCurrPage, setDisplayedQuestion}) {
     }, [])
 
     return (
-        <>
-            <h3 className='profile-header'>
-                Posted Questions
-            </h3>
-            {postedQuestions.length ? postedQuestions.map(q => <PostedQuestion key={q.qid} question={q} 
+        <div>
+            <h3 className='profile-header'>Posted Questions</h3>
+            <div>
+                {postedQuestions.length ? postedQuestions.map((q) => <PostedQuestion key={q.qid} question={q} 
                 setCurrPage={setCurrPage} setDisplayedQuestion={setDisplayedQuestion}/>) : 'No Questions'}
-        </>
+            </div>
+        </div>
     )
 }
 
 function PostedQuestion({question, setCurrPage, setDisplayedQuestion}) {
-
     return (
         <div className='title' onClick={() =>{
             setCurrPage(Constants.MODIFY_QUESTION_PAGE)
