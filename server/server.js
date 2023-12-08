@@ -338,7 +338,6 @@ app.post('/modifyQuestion', (req, res) => {
             }
             tags = tags.map(tag => tag._id)
             req.body.tags = tags
-            console.log(req.body)
             await Question.findOneAndUpdate({_id: req.body.qid},  {$set: req.body})
             res.status(200).send()
         } catch(error) {console.log(error)}
@@ -352,8 +351,8 @@ app.get('/answeredQuestions', (req, res) => {
             let user = await User.findOne({email: req.session.email})
             let answers = await Answer.find({ans_by: user.username})
             let questions = await Question.find({answers: {$in: answers}}).sort({ask_date_time: -1})
-            console.log(questions)
-            console.log(formatQuestions(questions))
+            //console.log(questions)
+            //console.log(formatQuestions(questions))
             res.send(formatQuestions(questions))
 
         } catch(error) {console.log(error)}
@@ -367,7 +366,10 @@ app.post('/deleteQuestion', (req, res) => {
 
         // DON"T FORGET TO DELETE TAGS AND ANSWERS TOO!!!!
         try {
-            const q = await Question.findByIdAndDelete(req.body._id)
+            const q = await Question.findById(req.body.qid)
+            await Answer.deleteMany({_id: {$in: q.answers}})
+            await Comment.deleteMany({_id: {$in: q.comments}})
+            await Question.deleteOne({_id: q._id})
             res.status(200).send()
         } catch(error) {console.log(error)}
     }

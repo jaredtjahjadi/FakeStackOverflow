@@ -9,17 +9,20 @@ import Comments from './Comments';
 let answerChunkInd = 0;
 
 export function SeeAnswers() {
-    const questionInfo = useContext(QuestionsInfo)
-    const currDisplayedQuestion = questionInfo.currDisplayedQuestion;
-    const setCurrPage = questionInfo.setCurrPage;
+    const questionsInfo = useContext(QuestionsInfo)
+    const currDisplayedQuestion = questionsInfo.currDisplayedQuestion;
+    const setCurrPage = questionsInfo.setCurrPage;
     const [answers, setAnswers] = useState([]);
     const [currDisplayedAnswers, setDisplayedAnswers] = useState([]);
+
+    const isUserAnswers = questionsInfo.currPage === Constants.SEE_USER_ANSWERS_PAGE;
 
     // Retrieves answers for current question from server
     useEffect(() => {
         let isMounted = true;
         const getAnswers = async() => {
             try {
+
                 const res = await axios.get(`http://localhost:8000/answers/${currDisplayedQuestion.qid}`)
                 if(isMounted) {
                     setAnswers(res.data);
@@ -37,7 +40,7 @@ export function SeeAnswers() {
         <div id='see-answers-page'>
             <div id='question-metadata-container'>
                 <div id='question-metadata-top'>
-                    <div id='num-answers'>{currDisplayedQuestion.ansIds.length} answers</div>
+                    <div id='num-answers'>{currDisplayedQuestion.ansIds.length ? currDisplayedQuestion.length : 0} answers</div>
                     <p id='question-metadata-title'>{currDisplayedQuestion.title}</p>
                     <AskQuestion />
                 </div>
@@ -108,7 +111,7 @@ function Hyperlink(props) {
     return <a href={ref} target="_blank" rel="noreferrer">{title}</a>
 }
 
-function AnswerNav(props) {
+export function AnswerNav(props) {
     const answerChunks = splitArray(props.ans, 5);
     const setDisplayedAnswers = props.setDisplayedAnswers;
     

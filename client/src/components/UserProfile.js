@@ -30,6 +30,7 @@ export function UserProfile({setCurrPage, setDisplayedQuestion}) {
                 </p>
             </div>
             <PostedQuestions setCurrPage={setCurrPage} setDisplayedQuestion={setDisplayedQuestion}/>
+            <AnsweredQuestions setCurrPage={setCurrPage} setDisplayedQuestion={setDisplayedQuestion}/>
         </div>
     )
 }
@@ -63,6 +64,43 @@ function PostedQuestion({question, setCurrPage, setDisplayedQuestion}) {
         <div className='title' onClick={() =>{
             setCurrPage(Constants.MODIFY_QUESTION_PAGE)
             setDisplayedQuestion(question)
+        }}>
+            {question.title}
+        </div>
+    )
+}
+
+function AnsweredQuestions({setCurrPage, setDisplayedQuestion}) {
+    const [answeredQuestions, setAnsweredQuestions] = useState([])
+
+    useEffect(() => {
+        const getAnsweredQuestions = async () => {
+            const answeredQuestions = await axios.get('http://localhost:8000/answeredQuestions')
+            console.log(answeredQuestions.data)
+            setAnsweredQuestions(answeredQuestions.data)
+        }
+
+        getAnsweredQuestions()
+    }, [])
+
+    return (
+        <>
+            <h3 className='profile-header'>
+                Answered Questions
+            </h3>
+            {answeredQuestions.length ? answeredQuestions.map(q => <AnsweredQuestion key={q.qid} question={q} 
+                setCurrPage={setCurrPage} setDisplayedQuestion={setDisplayedQuestion}/>) : 'No Questions'}
+        </>
+    )
+}
+
+function AnsweredQuestion({question, setCurrPage, setDisplayedQuestion}) {
+    return (
+        <div className='title' onClick={() =>{
+            setCurrPage(Constants.MODIFY_ANSWER_PAGE)
+            setDisplayedQuestion(question)
+            console.log(question)
+
         }}>
             {question.title}
         </div>

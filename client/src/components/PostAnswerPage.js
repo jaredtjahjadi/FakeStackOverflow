@@ -11,7 +11,7 @@ export default function PostAnswerPage() {
     const setCurrPage = questionsInfo.setCurrPage;
     const currDisplayedQuestion = questionsInfo.currDisplayedQuestion;
     const [formErrors, setFormErrors] = useState({});
-    
+
     const handleSubmit = async (event) => {
         event.preventDefault();
         const ansUser = event.target.ansuser.value.trim();
