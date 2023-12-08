@@ -84,6 +84,7 @@ function Question({question}) {
     const [tags, setTags] = useState([])
     const [views, setViews] = useState(question.views)
     const [votes, setVotes] = useState(question.votes)
+    const [username, setUsername] = useState('')
 
     let qid = question.qid;
     let currTitleTagsContainer = qid + "-title-tags-container";
@@ -104,6 +105,14 @@ function Question({question}) {
         }
         getViews();
     }, [question, views])
+
+    useEffect(() => {
+        const getQuestionUsername = async () => {
+            await axios.get('http://localhost:8000/userData', {params: question })
+            .then(res => { setUsername(res.data) })
+        }
+        getQuestionUsername();
+    }, [question])
 
     return (
         <div className="question">
@@ -135,7 +144,6 @@ function Question({question}) {
                     {question.ansIds.length} answers
                     <br />
                     {views} views
-                    {/* {question.views} views */}
                 </p>
 
                 <div id={currTitleTagsContainer} className='title-tags-container'>
@@ -155,7 +163,7 @@ function Question({question}) {
                     <div className="question-summary">{question.summary}</div>
                     <div id={currTagsContainer} className='tags-container'>{tags.map((t) => <div key={t.tid} className='tags'>{t.name}</div>)}</div>
                 </div>
-                <DateMetadata question={question} />
+                <DateMetadata question={question} user={username} />
             </div>
             <Comments question={question} />
         </div>
@@ -166,21 +174,22 @@ export function DateMetadata(props) {
     let q = props.question;
     let a = props.answer;
     let c = props.comment;
+    let u = props.user;
     let time_now = new Date();
     let time_posted, posted_by, str;
     if(q) { // Question
         time_posted = new Date(q.askDate);
-        posted_by = q.askedBy;
+        posted_by = u;
         str = " asked ";
     }
     if(a) { // Answer
         time_posted = new Date(a.ansDate);
-        posted_by = a.ansBy;
+        posted_by = u;
         str = " answered "
     }
     if(c) { // Comment
         time_posted = new Date(c.comDate);
-        posted_by = c.comBy;
+        posted_by = u;
         str = " commented "
     }
     const time_ago = time_now - time_posted;

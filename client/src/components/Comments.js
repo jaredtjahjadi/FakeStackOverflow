@@ -41,7 +41,7 @@ export default function Comments(props) {
             } catch(error) { console.log(error) }
         }
         getComments();
-    }, [question, answer])
+    }, [question, answer, comments])
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -55,7 +55,6 @@ export default function Comments(props) {
                 if(question) {
                     let comment = {
                         text: commentText,
-                        com_by: userInfo.username,
                         com_date_time: new Date(),
                         votes: 0,
                         qid: question.qid
@@ -67,7 +66,7 @@ export default function Comments(props) {
                 if(answer) {
                     let comment = {
                         text: commentText,
-                        com_by: userInfo.username,
+                        posted_by: userInfo.username,
                         com_date_time: new Date(),
                         votes: 0,
                         aid: answer.aid
@@ -108,6 +107,15 @@ export default function Comments(props) {
 }
 
 function Comment({comment}) {
+    const [username, setUsername] = useState('');
+    useEffect(() => {
+        const getCommentUsername = async () => {
+            await axios.get('http://localhost:8000/userData', {params: comment })
+            .then(res => { setUsername(res.data) })
+        }
+        getCommentUsername();
+    }, [comment])
+
     return (
         <div className="comment">
             <div className="votes">
@@ -128,7 +136,7 @@ function Comment({comment}) {
                     }}>🡇</p>
                 </div>
             <div><Text text={comment.text} /></div>
-            <DateMetadata comment={comment} />
+            <DateMetadata comment={comment} user={username} />
         </div>
     )
 }

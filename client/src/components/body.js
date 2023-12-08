@@ -80,9 +80,7 @@ export function Menu() {
             <div 
                 id="questions-link" 
                 className={currPage === Constants.QUESTIONS_PAGE ? "active" : undefined}
-                onClick={function() {
-                    setCurrPage(Constants.QUESTIONS_PAGE);
-                }}
+                onClick={() => setCurrPage(Constants.QUESTIONS_PAGE)}
             >
                 Questions
             </div>
@@ -95,9 +93,8 @@ export function Menu() {
                 Tags
             </div>
             <div
-                onClick={async () => {
-                    setCurrPage(Constants.USER_PROFILE)
-                }}
+            className={currPage === Constants.USER_PROFILE ? "active" : undefined}
+                onClick={async () => {setCurrPage(Constants.USER_PROFILE)}}
             >
                 User Profile
             </div>

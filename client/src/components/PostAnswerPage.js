@@ -34,7 +34,6 @@ export default function PostAnswerPage() {
                 setFormErrors({});
                 await axios.post('http://localhost:8000/postAnswer', {
                     text: ansText,
-                    ans_by: userInfo.username,
                     ans_date_time: new Date(),
                     questionId: currDisplayedQuestion.qid,
                     votes: 0,
