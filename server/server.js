@@ -186,7 +186,7 @@ app.get('/answers/:questionId', async (req, res) => {
 })
 
 app.get('/userAnswers/:questionId', async (req, res) => {
-    //const userAnswers = await
+    //const userAnswers = await Answer.findById({_id: {$in: req.session.}})
 })
 
 // Tags for a specific question
@@ -198,12 +198,6 @@ app.get('/tags', (req, res) => {
             tags = formatTags(tags)
             res.send(tags)
         })
-    } catch(error) { console.error(error) }
-})
-
-app.get('/views', (req, res) => {
-    try {
-        res.status(200).send(req.query.views);
     } catch(error) { console.error(error) }
 })
 
