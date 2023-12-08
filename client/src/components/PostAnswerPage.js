@@ -11,6 +11,7 @@ export default function PostAnswerPage() {
     const setCurrPage = questionsInfo.setCurrPage;
     const currDisplayedQuestion = questionsInfo.currDisplayedQuestion;
     const [formErrors, setFormErrors] = useState({});
+
     const [userInfo, setUserInfo] = useState(0);
 
     useEffect(() => {

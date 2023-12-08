@@ -7,6 +7,7 @@ import { SeeAnswers } from './SeeAnswers';
 import { QuestionsInfo } from './HomePage';
 import PostAnswerPage from './PostAnswerPage';
 import { UserProfile } from './UserProfile';
+import { SeeUserAnswers } from './SeeUserAnswers'
 import axios from 'axios'
 
 export default function Body() {
@@ -48,6 +49,12 @@ export function Main() {
             break;
         case Constants.MODIFY_QUESTION_PAGE:
             mainContent = <PostQuestionPage />;
+            break;
+        case Constants.SEE_USER_ANSWERS_PAGE:
+            mainContent = <SeeAnswers />
+            break;
+        case Constants.MODIFY_ANSWER_PAGE:
+            mainContent = <SeeUserAnswers />
             break;
         default:
             mainContent = <QuestionsPage />;

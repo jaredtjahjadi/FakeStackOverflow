@@ -64,7 +64,7 @@ export default function PostQuestionPage() {
 
     useEffect(() => {
         const getTags = async () => {
-            await axios.get('http://localhost:8000/tags', {params: currDisplayedQuestion.tags})
+            await axios.get('http://localhost:8000/tags', {params: currDisplayedQuestion.tagIds})
                 .then(res => {
                     let tagsInput = ""
                     res.data.map(tag => tagsInput += tag.name + " ")
@@ -100,7 +100,7 @@ export default function PostQuestionPage() {
                 setFormErrors({});
                 if(isModifying) {
                     const questionData = {
-                        _id: currDisplayedQuestion._id,
+                        qid: currDisplayedQuestion.qid,
                         title: questionTitle,
                         summary: questionSummary,
                         text: questionText,
@@ -132,7 +132,7 @@ export default function PostQuestionPage() {
     }
 
     const handleDelete = async () => {
-        await axios.post('http://localhost:8000/deleteQuestion', {_id: currDisplayedQuestion._id})
+        await axios.post('http://localhost:8000/deleteQuestion', {qid: currDisplayedQuestion.qid})
     }
 
     // Form validation: Add corresponding property to errors object if an error is found
@@ -146,7 +146,7 @@ export default function PostQuestionPage() {
         // Summary validation
         if(questionSummary.length === 0) errors.questionTile = emptyFieldStr;
         else if (questionSummary.length > 140) errors.questionSummary = "Question summary must be no more than 140 characters.";
-    
+
         // Text validation
         if (questionText.length === 0) errors.questionText = emptyFieldStr;
         // Hyperlink validation
