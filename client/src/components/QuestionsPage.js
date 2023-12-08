@@ -100,9 +100,7 @@ function Question({question}) {
     useEffect(() => {
         const getViews = async() => {
             await axios.get(`http://localhost:8000/views`, {params: question})
-            .then(res => {
-                setViews(res.data)
-            })
+            .then(res => { setViews(res.data) })
         }
         getViews();
     }, [question, views])

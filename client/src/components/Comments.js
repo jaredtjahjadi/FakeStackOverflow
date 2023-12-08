@@ -29,23 +29,19 @@ export default function Comments(props) {
         getUserInfo()
     }, [])
 
+    // Fetch comments for a given question or answer
     useEffect(() => {
-        let isMounted = true;
         const getComments = async () => {
             try {
                 let res;
                 if(question) res = await axios.get(`http://localhost:8000/questions/${question.qid}/comments`);
                 if(answer) res = await axios.get(`http://localhost:8000/answers/${answer.aid}/comments`);
-                if(isMounted) {
-                    setComments(res.data.reverse());
-                    setDisplayedComments(res.data.slice(0, 3));
-                    commentChunkInd = 0;
-                }
+                setComments(res.data.reverse());
+                setDisplayedComments(res.data.slice(commentChunkInd * 3, (commentChunkInd * 3) + 3));
             } catch(error) { console.log(error) }
         }
         getComments();
-        return () => { isMounted = false; }
-    }, [question, answer, comments])
+    }, [question, answer])
 
     const handleSubmit = async (event) => {
         event.preventDefault();
