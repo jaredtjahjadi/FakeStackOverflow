@@ -48,15 +48,6 @@ export default function PostQuestionPage() {
     const [questionSummary, setQuestionSummary] = useState(currDisplayedQuestion.summary)
     const [questionText, setQuestionText] = useState(currDisplayedQuestion.text)
     const [questionTags, setQuestionTags] = useState(currDisplayedQuestion.tags)
-    const [userInfo, setUserInfo] = useState(0);
-
-    useEffect(() => {
-        const getUserInfo = async () => {
-            const userInfo = await axios.get('http://localhost:8000/userProfile')
-            setUserInfo(userInfo.data)
-        }
-        getUserInfo()
-    })
 
     /**
      * We retrieve the tags and convert it to string format to insert into the Tags form.
@@ -65,13 +56,12 @@ export default function PostQuestionPage() {
     useEffect(() => {
         const getTags = async () => {
             await axios.get('http://localhost:8000/tags', {params: currDisplayedQuestion.tags})
-                .then(res => {
-                    let tagsInput = ""
-                    res.data.map(tag => tagsInput += tag.name + " ")
-                    setQuestionTags(tagsInput)
-                })
+            .then(res => {
+                let tagsInput = ""
+                res.data.map(tag => tagsInput += tag.name + " ")
+                setQuestionTags(tagsInput)
+            })
         }
-        
         getTags();
     }, [currDisplayedQuestion])
 
@@ -83,8 +73,7 @@ export default function PostQuestionPage() {
         const inputTags = questionTagStr.split(" ");
         const questionTags = inputTags.filter(inputTag => inputTag !== "").map(inputTag => inputTag.toLowerCase());
         const questionText = event.target.qtext.value.trim();
-        const questionUsername = event.target.quser.value.trim();
-        const errors = validateForm({questionTitle, questionSummary, questionText, questionTagStr, questionTags, questionUsername});
+        const errors = validateForm({questionTitle, questionSummary, questionText, questionTagStr, questionTags});
         // If no errors in form (all fields are valid)
         if(Object.keys(errors).length === 0) {
             try {
@@ -116,7 +105,6 @@ export default function PostQuestionPage() {
                         text: questionText,
                         tags: questionTags,
                         answers: [],
-                        asked_by: userInfo.username,
                         ask_date_time: new Date(),
                         views: 0,
                         votes: 0,
@@ -186,7 +174,7 @@ export default function PostQuestionPage() {
                 <FormField
                     id="question-summary"
                     title="Question Summary"
-                    input={false}
+                    input={true}
                     name='summary'
                     
                     value={isModifying ? questionSummary : null}

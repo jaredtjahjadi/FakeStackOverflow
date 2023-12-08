@@ -6,7 +6,7 @@ var Schema = mongoose.Schema;
 
 const commentSchema = new Schema({
     text: {type: String, required: true},
-    com_by: {type: String, required: true},
+    posted_by: {type: Schema.Types.ObjectId, ref: 'User'},
     com_date_time: {type: Date, default: new Date()},
     votes: {type: Number, default: 0}
 })

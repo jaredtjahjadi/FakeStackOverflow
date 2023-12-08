@@ -137,7 +137,7 @@ app.get('/userProfile', (req,res) => {
 })
 
 app.get('/postedQuestions', (req, res) => {
-    Question.find({asked_by: req.session.username}).exec()
+    Question.find({posted_by: req.session.username}).exec()
         .then(questions => { res.send(formatQuestions(questions)) })
 })
 
@@ -295,10 +295,21 @@ app.get('/searchResults', (req, res) => {
     }
 })
 
+/**
+ * This route takes a question/answer/comment as input and access its postedBy field, which is the ObjectID of the
+ * user that made the post. The user with the respective ID in the users collection in our database is found and
+ * only the username is sent to the client.
+ */
+app.get('/userData', (req, res) => {
+    User.findOne({_id: req.query.postedBy}, {username: 1}).exec().then(user => { res.send(user.username); })
+})
+
 app.post('/addQuestion', (req, res) => {
     async function addQuestion() {
         try{
             const data = req.body
+            data.posted_by = await User.findOne({email: req.session.email}, {_id: 1})
+            console.log(data.posted_by)
             const tagIds = []
             /*
                 Search for the tag IDs associated with the given tag names, 
@@ -356,7 +367,7 @@ app.get('/answeredQuestions', (req, res) => {
     async function getAnsweredQuestions() {
         try {
             let user = await User.findOne({email: req.session.email})
-            let answers = await Answer.find({ans_by: user.username})
+            let answers = await Answer.find({posted_by: user.username})
             let questions = await Question.find({answers: {$in: answers}}).sort({ask_date_time: -1})
             console.log(questions)
             console.log(formatQuestions(questions))
@@ -386,32 +397,35 @@ app.post('/postAnswer', (req, res) => {
         try {
             const ans = new Answer({
                 text: req.body.text,
-                ans_by: req.body.ans_by,
+                posted_by: await User.findOne({email: req.session.email}, {_id: 1}),
                 ans_date_time: req.body.ans_date_time,
                 votes: 0,
                 comments: []
             })
             ans.save();
             await Question.findByIdAndUpdate({_id: req.body.questionId}, { $push: { answers: ans._id }})
+            res.status(200).send();
         } catch(error) { console.log(error)}
     }
     postAnswer();
 })
 
-app.post('/incQVote', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { votes: 1}}) })
+app.post('/incQVote', async(req, res) => {
+    await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { votes: 1}})
+})
 app.post('/decQVote', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { votes: -1}}) })
 app.post('/incAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: 1}}) })
 app.post('/decAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: -1}}) })
 app.post('/incCVote', async(req, res) => { await Comment.findByIdAndUpdate({_id: req.body.cid}, {$inc: { votes: 1}}) })
 app.post('/decCVote', async(req, res) => { await Comment.findByIdAndUpdate({_id: req.body.cid}, {$inc: { votes: -1}}) })
-app.post('/incrementView', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { views: 0}}) })
+app.post('/incrementView', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { views: 1}}) })
 
 app.post('/postQComment', (req, res) => {
     async function postComment() {
         try {
             const com = new Comment({
                 text: req.body.text,
-                com_by: req.body.com_by,
+                posted_by: await User.findOne({email: req.session.email}, {_id: 1}),
                 com_date_time: req.body.com_date_time,
                 votes: 0
             })
@@ -428,7 +442,7 @@ app.post('/postAComment', (req, res) => {
         try {
             const com = new Comment({
                 text: req.body.text,
-                com_by: req.body.com_by,
+                posted_by: req.body.posted_by,
                 com_date_time: req.body.com_date_time,
                 votes: 0
             })
@@ -467,7 +481,7 @@ function formatQuestions(questions) {
             summary: q.summary,
             text: q.text,
             tagIds: q.tags,
-            askedBy: q.asked_by,
+            postedBy: q.posted_by,
             askDate: q.ask_date_time,
             ansIds: q.answers,
             views: q.views,
@@ -484,7 +498,7 @@ function formatAnswers(answers) {
         answers[i] = {
             aid: a._id,
             text: a.text,
-            ansBy: a.ans_by,
+            postedBy: a.posted_by,
             ansDate: a.ans_date_time,
             votes: a.votes,
             comments: a.comments
@@ -510,7 +524,7 @@ function formatComments(comments) {
         comments[i] = {
             cid: c._id,
             text: c.text,
-            comBy: c.com_by,
+            postedBy: c.posted_by,
             comDate: c.com_date_time,
             votes: c.votes
         }
@@ -522,7 +536,5 @@ function formatComments(comments) {
 process.on('SIGINT', () => {
     console.log('\nServer closed. Database instance disconnected.');
     mongoose.connection.close();
-    mongoose.connection.once('close', () => {
-        server.close(() => { process.exit(0); })
-    })
+    mongoose.connection.once('close', () => { server.close(() => { process.exit(0); }) })
 })

@@ -10,7 +10,7 @@ const questionSchema = new Schema({
     text: {type: String, required: true, default: new Date()},
     tags: [{type: Schema.Types.ObjectId, ref: 'Tag', required: true}],
     answers: [{type: Schema.Types.ObjectId, ref: 'Answer'}],
-    asked_by: {type: String, default: 'Anonymous'},
+    posted_by: {type: Schema.Types.ObjectId, ref: 'User'},
     ask_date_time: {type: Date, default: new Date()},
     views: {type: Number, default: 0},
     votes: {type: Number, default: 0},
