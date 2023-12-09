@@ -10,13 +10,20 @@ let answerChunkInd = 0;
 
 export function SeeAnswers() {
     const questionsInfo = useContext(QuestionsInfo)
-    const currDisplayedQuestion = questionsInfo.currDisplayedQuestion;
+    const currDisplayedPost = questionsInfo.currDisplayedPost;
     const setCurrPage = questionsInfo.setCurrPage;
+    const setDisplayedPost = questionsInfo.setDisplayedPost
     const [answers, setAnswers] = useState([]);
     const [currDisplayedAnswers, setDisplayedAnswers] = useState([]);
     const [username, setUsername] = useState('');
-
-    const isUserAnswers = questionsInfo.currPage === Constants.SEE_USER_ANSWERS_PAGE;
+    /*
+        This is the index before the user's answers end. It's used make a distinction for the
+        user's answers from the rest of the answers associated with a question. It's used
+        for each answer to decide whether we should give the user the option to modify
+        a specific question or not. Check the /userFormattedAnswers route in server.js
+        to see how I formatted it.
+    */
+    const [userAnswersEndInd, setUserAnswersEndInd] = useState(0)
 
     // Retrieves answers for current question from server
     useEffect(() => {
@@ -24,42 +31,55 @@ export function SeeAnswers() {
         const getAnswers = async() => {
             try {
 
-                const res = await axios.get(`http://localhost:8000/answers/${currDisplayedQuestion.qid}`)
-                if(isMounted) {
-                    setAnswers(res.data);
-                    setDisplayedAnswers(res.data.slice(0, 5));
-                    answerChunkInd = 0;
+                let res;
+
+                if(questionsInfo.currPage === Constants.SEE_USER_ANSWERS_PAGE) {
+                    res = await axios.get(`http://localhost:8000/userFormattedAnswers/${currDisplayedPost.qid}`)
+                    setUserAnswersEndInd(res.data.userEndInd)
+                    setDisplayedAnswers(res.data.answers.slice(0, 5));
+                    setAnswers(res.data.answers);
                 }
+
+                else {
+                    res = await axios.get(`http://localhost:8000/answers/${currDisplayedPost.qid}`)
+                    setDisplayedAnswers(res.data.slice(0, 5));
+                    setAnswers(res.data);
+                }
+
+                if(isMounted)
+                    answerChunkInd = 0;
+
             } catch(error) { console.log(error) }
         }
         getAnswers();
 
         return () => { isMounted = false; }
-    }, [currDisplayedQuestion, answers])
+    }, [questionsInfo.currPage, currDisplayedPost.qid])
 
     useEffect(() => {
         const getQuestionUserData = async () => {
-            await axios.get('http://localhost:8000/userData', {params: currDisplayedQuestion })
+            await axios.get('http://localhost:8000/userData', {params: currDisplayedPost })
             .then(res => { setUsername(res.data) })
         }
         getQuestionUserData();
-    }, [currDisplayedQuestion])
+    }, [currDisplayedPost])
 
     return (
         <div id='see-answers-page'>
             <div id='question-metadata-container'>
                 <div id='question-metadata-top'>
-                    <div id='num-answers'>{currDisplayedQuestion.ansIds.length ? currDisplayedQuestion.length : 0} answers</div>
-                    <p id='question-metadata-title'>{currDisplayedQuestion.title}</p>
+                    <div id='num-answers'>{currDisplayedPost ? currDisplayedPost.ansIds.length : 0} answers</div>
+                    <p id='question-metadata-title'>{currDisplayedPost.title}</p>
                     <AskQuestion />
                 </div>
                 <div id='question-metadata-bottom'>
-                    <div id='num-views'>{currDisplayedQuestion.views} views</div>
-                    <div id='question-metadata-text'><Text text={currDisplayedQuestion.text} /></div>
-                    <div id='asked-by'><DateMetadata question={currDisplayedQuestion} user={username} /></div>
+                    <div id='num-views'>{currDisplayedPost.views} views</div>
+                    <div id='question-metadata-text'><Text text={currDisplayedPost.text} /></div>
+                    <div id='asked-by'><DateMetadata question={currDisplayedPost} user={username} /></div>
                 </div>
             </div>
-            <div id='answers'>{currDisplayedAnswers.map((ans) => <Answer key={ans.aid} answer={ans} />)}</div>
+            <div id='answers'>{currDisplayedAnswers.map((ans, index) => <Answer key={ans.aid} answer={ans} setCurrPage={setCurrPage} 
+                setDisplayedPost={setDisplayedPost} isUsers={index < userAnswersEndInd} setAnswers={setAnswers} answers={answers}/>)}</div>
             <div id='answer-question-container'>
                 <button id='answer-question' onClick={() => setCurrPage(Constants.POST_ANSWER_PAGE)}>Answer Question</button>
             </div>
@@ -68,8 +88,10 @@ export function SeeAnswers() {
     )
 }
 
-function Answer({answer}) {
+function Answer({answer, setCurrPage, setDisplayedPost, isUsers, setAnswers, answers}) {
     const [username, setUsername] = useState('');
+    const questionsInfo = useContext(QuestionsInfo)
+
     useEffect(() => {
         const getAnswerUsername = async () => {
             await axios.get('http://localhost:8000/userData', {params: answer })
@@ -100,7 +122,25 @@ function Answer({answer}) {
                 <div className='answer-text'><Text text={answer.text} /></div>
                 <DateMetadata answer={answer} user={username} />
             </div>
-            <Comments answer={answer} />
+
+            {questionsInfo.currPage !== Constants.SEE_USER_ANSWERS_PAGE && <Comments answer={answer} />}
+            {questionsInfo.currPage === Constants.SEE_USER_ANSWERS_PAGE && isUsers === true &&
+                <button className='modify-button' onClick={() => {
+                    setCurrPage(Constants.MODIFY_ANSWER_PAGE)
+                    setDisplayedPost(answer)
+                }}>
+                    Modify
+                </button>
+            }
+            {questionsInfo.currPage === Constants.SEE_USER_ANSWERS_PAGE && isUsers === true &&
+                <button className='modify-button' onClick={async () => {
+                    await axios.post('http://localhost:8000/deleteAnswer', {aid: answer.aid})
+                    setAnswers(answers.filter(ans => ans.aid !== answer.aid))
+                    setCurrPage(Constants.USER_PROFILE)
+                }}>
+                    Delete
+                </button>
+            }
         </div>
     )
 }

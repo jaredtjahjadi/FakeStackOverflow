@@ -33,7 +33,7 @@ export default function PostQuestionPage() {
     const questionsInfo = useContext(QuestionsInfo);
     const setCurrPage = questionsInfo.setCurrPage;
     const getNewestQuestions = questionsInfo.getNewestQuestions
-    const currDisplayedQuestion = questionsInfo.currDisplayedQuestion
+    const currDisplayedPost = questionsInfo.currDisplayedPost
     const [formErrors, setFormErrors] = useState({});
 
     // Decides certain display depending on either posting or modifying
@@ -44,10 +44,10 @@ export default function PostQuestionPage() {
      * modification rather than posting a new question.
      */
 
-    const [questionTitle, setQuestionTitle] = useState(currDisplayedQuestion.title)
-    const [questionSummary, setQuestionSummary] = useState(currDisplayedQuestion.summary)
-    const [questionText, setQuestionText] = useState(currDisplayedQuestion.text)
-    const [questionTags, setQuestionTags] = useState(currDisplayedQuestion.tags)
+    const [questionTitle, setQuestionTitle] = useState(currDisplayedPost.title)
+    const [questionSummary, setQuestionSummary] = useState(currDisplayedPost.summary)
+    const [questionText, setQuestionText] = useState(currDisplayedPost.text)
+    const [questionTags, setQuestionTags] = useState(currDisplayedPost.tags)
 
     /**
      * We retrieve the tags and convert it to string format to insert into the Tags form.
@@ -55,7 +55,7 @@ export default function PostQuestionPage() {
 
     useEffect(() => {
         const getTags = async () => {
-            await axios.get('http://localhost:8000/tags', {params: currDisplayedQuestion.tags})
+            await axios.get('http://localhost:8000/tags', {params: currDisplayedPost.tags})
             .then(res => {
                 let tagsInput = ""
                 res.data.map(tag => tagsInput += tag.name + " ")
@@ -63,7 +63,7 @@ export default function PostQuestionPage() {
             })
         }
         getTags();
-    }, [currDisplayedQuestion])
+    }, [currDisplayedPost])
 
     const handleSubmit = async (event) => {
         event.preventDefault(); // Stop the page from refreshing
@@ -89,7 +89,7 @@ export default function PostQuestionPage() {
                 setFormErrors({});
                 if(isModifying) {
                     const questionData = {
-                        qid: currDisplayedQuestion.qid,
+                        qid: currDisplayedPost.qid,
                         title: questionTitle,
                         summary: questionSummary,
                         text: questionText,
@@ -114,13 +114,13 @@ export default function PostQuestionPage() {
                 }
 
                 await getNewestQuestions()
-                setCurrPage(Constants.QUESTIONS_PAGE);
+                setCurrPage(Constants.USER_PROFILE);
             } catch (error) { console.log(error); }
         } else setFormErrors(errors);
     }
 
     const handleDelete = async () => {
-        await axios.post('http://localhost:8000/deleteQuestion', {qid: currDisplayedQuestion.qid})
+        await axios.post('http://localhost:8000/deleteQuestion', {qid: currDisplayedPost.qid})
     }
 
     // Form validation: Add corresponding property to errors object if an error is found

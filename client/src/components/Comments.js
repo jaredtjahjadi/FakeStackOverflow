@@ -51,23 +51,23 @@ export default function Comments(props) {
                 if(question) {
                     let comment = {
                         text: commentText,
-                        com_date_time: new Date(),
+                        comDate: new Date(),
                         votes: 0,
                         qid: question.qid
                     }
-                    
                     await axios.post('http://localhost:8000/postQComment', comment)
-                    setComments([comment, ...comments].reverse())
+
+                    setComments([comment, ...comments])
                 }
                 if(answer) {
                     let comment = {
                         text: commentText,
-                        com_date_time: new Date(),
+                        comDate: new Date(),
                         votes: 0,
                         aid: answer.aid
                     }
                     await axios.post('http://localhost:8000/postAComment', comment)
-                    setComments([comment, ...comments].reverse())
+                    setComments([comment, ...comments])
                 }
             } catch { console.log(errors); }
         } else setFormErrors(errors);

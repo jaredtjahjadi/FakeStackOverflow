@@ -189,7 +189,8 @@ app.get('/answers/:questionId', async (req, res) => {
 })
 
 app.get('/userAnswers/:questionId', async (req, res) => {
-    //const userAnswers = await Answer.findById({_id: {$in: req.session.}})
+    const userAnswers = await Answer.findById({_id: {$in: req.session.userId}})
+    res.send(userAnswers)
 })
 
 // Tags for a specific question
@@ -307,9 +308,7 @@ app.get('/userData', (req, res) => {
 
         else
             user = await User.findById(req.session.userId)
-        console.log(user)
-        console.log("USERNAME")
-        console.log(user.username)
+
         res.send(user.username)
     }
 
@@ -373,20 +372,60 @@ app.post('/modifyQuestion', (req, res) => {
     modifyQuestion()
 })
 
+app.post('/modifyAnswer', (req, res) => {
+
+    async function modifyAnswer() {
+        try {
+            await Answer.findOneAndUpdate({_id: req.body.aid}, {$set: req.body})
+            res.status(200).send()
+        } catch(error) {console.log(error)}
+    }
+
+    modifyAnswer()
+})
+
+app.post('/deleteAnswer', (req, res) => {
+
+    async function deleteAnswer() {
+        try {
+            const ans = await Answer.findOne({_id: req.body.aid})
+            await Comment.deleteMany({_id: {$in: ans.comments}})
+            await Answer.deleteOne({_id: req.body.aid})
+            res.status(200).send()
+        } catch(error) {console.log(error)}
+    }
+    
+    deleteAnswer()
+})
+
 app.get('/answeredQuestions', (req, res) => {
     async function getAnsweredQuestions() {
         try {
-            let user = await User.findOne({_id: req.session.userId})
-            let answers = await Answer.find({posted_by: user.username})
+            let answers = await Answer.find({posted_by: req.session.userId})
             let questions = await Question.find({answers: {$in: answers}}).sort({ask_date_time: -1})
-            //console.log(questions)
-            //console.log(formatQuestions(questions))
+
             res.send(formatQuestions(questions))
 
         } catch(error) {console.log(error)}
     }
 
     getAnsweredQuestions()
+})
+
+app.get('/userFormattedAnswers/:questionId', (req, res) => {
+    async function getUserFormattedAnswers() {
+        const q = await Question.findById(req.params.questionId);
+        const answers = await Answer.find({_id: {$in: q.answers}}).sort({ans_date_time: -1})
+        const userAnswers = answers.filter(a => a.posted_by == req.session.userId)
+        const otherAnswers = answers.filter(a => a.posted_by != req.session.userId)
+        /*
+            userEndInd represents when do the user answers end and when the rest of the answers begin.
+            ofc this can be optimized somehow but it's 2AM and my eyes hurt, so let's keep this for now.
+        */
+        res.send({answers: formatAnswers([...userAnswers, ...otherAnswers]), userEndInd: userAnswers.length})
+    }
+
+    getUserFormattedAnswers();
 })
 
 app.post('/deleteQuestion', (req, res) => {
@@ -439,7 +478,7 @@ app.post('/postQComment', (req, res) => {
             const com = new Comment({
                 text: req.body.text,
                 posted_by: req.session.userId,
-                com_date_time: req.body.com_date_time,
+                com_date_time: req.body.comDate,
                 votes: 0
             })
             com.save();
@@ -456,11 +495,12 @@ app.post('/postAComment', (req, res) => {
             const com = new Comment({
                 text: req.body.text,
                 posted_by: req.session.userId,
-                com_date_time: req.body.com_date_time,
+                com_date_time: req.body.comDate,
                 votes: 0
             })
             com.save();
             await Answer.findByIdAndUpdate({_id: req.body.aid}, { $push: { comments: com._id }})
+            res.status(200).send()
         } catch(error) { console.log(error) }
     }
     postComment();

@@ -7,7 +7,6 @@ import { SeeAnswers } from './SeeAnswers';
 import { QuestionsInfo } from './HomePage';
 import PostAnswerPage from './PostAnswerPage';
 import { UserProfile } from './UserProfile';
-import { SeeUserAnswers } from './SeeUserAnswers'
 import axios from 'axios'
 
 export default function Body() {
@@ -26,7 +25,8 @@ export function Main() {
     const questionsInfo = useContext(QuestionsInfo);
     const currPage = questionsInfo.currPage;
     const setCurrPage = questionsInfo.setCurrPage;
-    const setDisplayedQuestion = questionsInfo.setDisplayedQuestion;
+    const currDisplayedPost = questionsInfo.currDisplayedPost;
+    const setDisplayedPost = questionsInfo.setDisplayedPost;
 
     switch(currPage) {
         case Constants.POST_QUESTION_PAGE:
@@ -45,7 +45,7 @@ export function Main() {
             mainContent = <PostAnswerPage />;
             break;
         case Constants.USER_PROFILE:
-            mainContent = <UserProfile setCurrPage={setCurrPage} setDisplayedQuestion={setDisplayedQuestion}/>;
+            mainContent = <UserProfile setCurrPage={setCurrPage} setDisplayedPost={setDisplayedPost}/>;
             break;
         case Constants.MODIFY_QUESTION_PAGE:
             mainContent = <PostQuestionPage />;
@@ -54,7 +54,7 @@ export function Main() {
             mainContent = <SeeAnswers />
             break;
         case Constants.MODIFY_ANSWER_PAGE:
-            mainContent = <SeeUserAnswers />
+            mainContent = <PostAnswerPage answer={currDisplayedPost}/>
             break;
         default:
             mainContent = <QuestionsPage />;

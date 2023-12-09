@@ -5,12 +5,18 @@ import { QuestionsInfo } from './HomePage';
 import axios from 'axios';
 import { ErrorMessage } from './PostQuestionPage';
 
-export default function PostAnswerPage() {
+export default function PostAnswerPage({answer}) {
     const emptyFieldStr = "This field must be filled out."
     const questionsInfo = useContext(QuestionsInfo);
     const setCurrPage = questionsInfo.setCurrPage;
-    const currDisplayedQuestion = questionsInfo.currDisplayedQuestion;
+    const currDisplayedPost = questionsInfo.currDisplayedPost;
     const [formErrors, setFormErrors] = useState({});
+    const [answerText, setAnswerText] = useState('')
+
+    useEffect(() => {
+        if(answer)
+            setAnswerText(answer.text)
+    }, [answer])
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -19,16 +25,31 @@ export default function PostAnswerPage() {
         //If no errors in form (all fields are valid)
         if(Object.keys(errors).length === 0) {
             try {
-                setCurrPage(Constants.SEE_ANSWERS_PAGE);
-                event.target.reset();
-                setFormErrors({});
-                await axios.post('http://localhost:8000/postAnswer', {
-                    text: ansText,
-                    ans_date_time: new Date(),
-                    questionId: currDisplayedQuestion.qid,
-                    votes: 0,
-                    comments: []
-                })
+
+                if(answerText) {
+                    await axios.post('http://localhost:8000/modifyAnswer', {
+                        text: ansText,
+                        aid: currDisplayedPost.aid,
+                    })
+
+                    event.target.reset();
+                    setFormErrors({});
+                    setCurrPage(Constants.USER_PROFILE);
+                }
+
+                else {
+                    await axios.post('http://localhost:8000/postAnswer', {
+                        text: ansText,
+                        ans_date_time: new Date(),
+                        questionId: currDisplayedPost.qid,
+                        votes: 0,
+                        comments: []
+                    })
+
+                    event.target.reset();
+                    setFormErrors({});
+                    setCurrPage(Constants.QUESTIONS_PAGE);
+                }
             } catch(error) { console.log(error); }
         }
         else setFormErrors(errors);
@@ -49,10 +70,17 @@ export default function PostAnswerPage() {
     return (
         <div id="new-answer">
             <form id="new-answer-form" name="new-answer" onSubmit={handleSubmit}>
-                <FormField input={false} id="ans-text" title="Answer Text" name="anstext" />
+                <FormField 
+                    input={false} 
+                    id="ans-text" 
+                    title="Answer Text" 
+                    name="anstext" 
+                    value={answerText ? answerText : null}
+                    onChange={answerText ? (event) => setAnswerText(event.target.value) : null}
+                />
                 {formErrors.ansText && <ErrorMessage errMsg={formErrors.ansText} />}
                 <div id="end-form">
-                    <input className="submit-button" type="submit" value="Post Question" />
+                    <input className="submit-button" type="submit" value="Post Answer" />
                     <div id="mandatory-fields">* indicates mandatory fields</div>
                 </div>
             </form>

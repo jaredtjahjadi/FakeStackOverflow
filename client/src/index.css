@@ -237,6 +237,15 @@ body { font-family: Arial; }
     cursor: pointer;
 }
 
+.user-profile-question-title
+{
+    width: fit-content; /* div with "title" class only takes up as much content as text takes up */
+    font-size: 150%;
+    color: blue;
+    cursor: pointer;
+    margin-bottom: 1%;
+}
+
 .tags-container
 {
     display: flex;
@@ -263,6 +272,8 @@ body { font-family: Arial; }
 .time { text-align: right; }
 
 .comment-container { margin: 2.5% 5%; }
+
+.modify-button { margin: 2.5% 1.5%; }
 
 .comment {
     display: grid;
