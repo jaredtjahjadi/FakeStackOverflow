@@ -104,7 +104,7 @@ function Question({question}) {
             .then(res => { setViews(res.data) })
         }
         getViews();
-    }, [question, views])
+    }, [question])
 
     useEffect(() => {
         const getQuestionUsername = async () => {

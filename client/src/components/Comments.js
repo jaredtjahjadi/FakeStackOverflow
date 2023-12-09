@@ -19,15 +19,6 @@ export default function Comments(props) {
     const [currDisplayedComments, setDisplayedComments] = useState([]);
     const [insertComment, showInsertComment] = useState(false);
     const [formErrors, setFormErrors] = useState({});
-    const [userInfo, setUserInfo] = useState(0);
-
-    useEffect(() => {
-        const getUserInfo = async () => {
-            const userInfo = await axios.get('http://localhost:8000/userProfile')
-            setUserInfo(userInfo.data)
-        }
-        getUserInfo()
-    }, [])
 
     // Fetch comments for a given question or answer
     useEffect(() => {
@@ -37,11 +28,16 @@ export default function Comments(props) {
                 if(question) res = await axios.get(`http://localhost:8000/questions/${question.qid}/comments`);
                 if(answer) res = await axios.get(`http://localhost:8000/answers/${answer.aid}/comments`);
                 setComments(res.data.reverse());
-                setDisplayedComments(res.data.slice(commentChunkInd * 3, (commentChunkInd * 3) + 3));
             } catch(error) { console.log(error) }
         }
         getComments();
-    }, [question, answer, comments])
+    }, [question, answer])
+
+    useEffect(() => {
+        setDisplayedComments(comments.slice(commentChunkInd * 3, (commentChunkInd * 3) + 3));
+    }, [comments])
+
+
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -61,18 +57,17 @@ export default function Comments(props) {
                     }
                     
                     await axios.post('http://localhost:8000/postQComment', comment)
-                    setComments([comment, ...comments])
+                    setComments([comment, ...comments].reverse())
                 }
                 if(answer) {
                     let comment = {
                         text: commentText,
-                        posted_by: userInfo.username,
                         com_date_time: new Date(),
                         votes: 0,
                         aid: answer.aid
                     }
                     await axios.post('http://localhost:8000/postAComment', comment)
-                    setComments([comment, ...comments])
+                    setComments([comment, ...comments].reverse())
                 }
             } catch { console.log(errors); }
         } else setFormErrors(errors);

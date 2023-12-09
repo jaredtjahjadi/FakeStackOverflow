@@ -68,7 +68,7 @@ const ADMIN = 'ADMIN'
 */
 
 app.get('/', (req,res) => {
-    if(req.session.username) res.status(200).send() // Session for the user still exists
+    if(req.session.userId) res.status(200).send() // Session for the user still exists
     else return res.status(401).send() // Session expired
     
 })
@@ -102,7 +102,7 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
     // Email must be registered with a user.
     const user = await User.findOne({email: req.body.email}).exec()
-    if(user.length == 0) {
+    if(user == null) {
         return res.status(403).send({
             message: "The given email is not registered with a user."
         })
@@ -116,8 +116,10 @@ app.post('/login', async (req, res) => {
         })
     }
 
-    req.session.username = user.username
-    req.session.email = user.email
+    // req.session.username = user.username
+    // req.session.email = user.email
+
+    req.session.userId = user._id;
     res.status(200).send()
 })
 
@@ -126,7 +128,7 @@ app.post('/login', async (req, res) => {
 */
 
 app.get('/userProfile', (req,res) => {
-    User.findOne({username: req.session.username}).exec()
+    User.findById({_id: req.session.userId}).exec()
         .then(user => {
             res.send({
                 username: user.username,
@@ -137,7 +139,7 @@ app.get('/userProfile', (req,res) => {
 })
 
 app.get('/postedQuestions', (req, res) => {
-    Question.find({posted_by: req.session.username}).exec()
+    Question.find({posted_by: req.session.userId}).exec()
         .then(questions => { res.send(formatQuestions(questions)) })
 })
 
@@ -146,7 +148,8 @@ app.get('/postedQuestions', (req, res) => {
 */
 
 app.get('/username', (req, res) => {
-    res.send(req.session.username)
+    const user = User.find({_id: req.session.userId})
+    res.send(user.username)
 })
 
 app.get('/newestQuestions', (req, res) => {
@@ -295,15 +298,29 @@ app.get('/searchResults', (req, res) => {
  * only the username is sent to the client.
  */
 app.get('/userData', (req, res) => {
-    User.findOne({_id: req.query.postedBy}, {username: 1}).exec().then(user => { res.send(user.username); })
+    async function getUserData() {
+
+        let user;
+
+        if(req.query.postedBy)
+            user = await User.findById(req.query.postedBy)
+
+        else
+            user = await User.findById(req.session.userId)
+        console.log(user)
+        console.log("USERNAME")
+        console.log(user.username)
+        res.send(user.username)
+    }
+
+    getUserData()
 })
 
 app.post('/addQuestion', (req, res) => {
     async function addQuestion() {
         try{
             const data = req.body
-            data.posted_by = await User.findOne({email: req.session.email}, {_id: 1})
-            console.log(data.posted_by)
+            data.posted_by = await User.findOne({_id: req.session.userId}, {_id: 1})
             const tagIds = []
             /*
                 Search for the tag IDs associated with the given tag names, 
@@ -359,7 +376,7 @@ app.post('/modifyQuestion', (req, res) => {
 app.get('/answeredQuestions', (req, res) => {
     async function getAnsweredQuestions() {
         try {
-            let user = await User.findOne({email: req.session.email})
+            let user = await User.findOne({_id: req.session.userId})
             let answers = await Answer.find({posted_by: user.username})
             let questions = await Question.find({answers: {$in: answers}}).sort({ask_date_time: -1})
             //console.log(questions)
@@ -393,7 +410,7 @@ app.post('/postAnswer', (req, res) => {
         try {
             const ans = new Answer({
                 text: req.body.text,
-                posted_by: await User.findOne({email: req.session.email}, {_id: 1}),
+                posted_by: await User.findOne({_id: req.session.userId}, {_id: 1}),
                 ans_date_time: req.body.ans_date_time,
                 votes: 0,
                 comments: []
@@ -421,7 +438,7 @@ app.post('/postQComment', (req, res) => {
         try {
             const com = new Comment({
                 text: req.body.text,
-                posted_by: await User.findOne({email: req.session.email}, {_id: 1}),
+                posted_by: req.session.userId,
                 com_date_time: req.body.com_date_time,
                 votes: 0
             })
@@ -438,7 +455,7 @@ app.post('/postAComment', (req, res) => {
         try {
             const com = new Comment({
                 text: req.body.text,
-                posted_by: req.body.posted_by,
+                posted_by: req.session.userId,
                 com_date_time: req.body.com_date_time,
                 votes: 0
             })
