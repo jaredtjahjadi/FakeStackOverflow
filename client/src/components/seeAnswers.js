@@ -46,8 +46,7 @@ export function SeeAnswers() {
                     setAnswers(res.data);
                 }
 
-                if(isMounted)
-                    answerChunkInd = 0;
+                if(isMounted) answerChunkInd = 0;
 
             } catch(error) { console.log(error) }
         }
@@ -91,6 +90,7 @@ export function SeeAnswers() {
 function Answer({answer, setCurrPage, setDisplayedPost, isUsers, setAnswers, answers}) {
     const [username, setUsername] = useState('');
     const questionsInfo = useContext(QuestionsInfo)
+    const [votes, setVotes] = useState(answer.votes);
 
     useEffect(() => {
         const getAnswerUsername = async () => {
@@ -105,15 +105,21 @@ function Answer({answer, setCurrPage, setDisplayedPost, isUsers, setAnswers, ans
                 <div className="votes">
                     <p className="upvote" onClick={() => {
                         const incQVote = async() => {
-                            try { await axios.post('http://localhost:8000/incAVote', answer) }
+                            const a = answer;
+                            a.votes++;
+                            setVotes(a.votes);
+                            try { await axios.post('http://localhost:8000/incVote', answer) }
                             catch(error) { console.log(error) }
                         }
                         incQVote();
                     }}>🡅</p>
-                    {answer.votes}
+                    {votes}
                     <p className="downvote" onClick={() => {
                         const decQVote = async() => {
-                            try { await axios.post('http://localhost:8000/decAVote', answer) }
+                            const a = answer;
+                            a.votes--;
+                            setVotes(a.votes);
+                            try { await axios.post('http://localhost:8000/decVote', answer) }
                             catch(error) { console.log(error) }
                         }
                         decQVote();

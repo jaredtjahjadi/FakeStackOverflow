@@ -172,6 +172,7 @@ function Register({setCurrPage}) {
     
         registerUser()
             .then(() => {
+                alert("Registration successful.");
                 setCurrPage(Constants.LOGIN_PAGE)
             })
             .catch(error => {

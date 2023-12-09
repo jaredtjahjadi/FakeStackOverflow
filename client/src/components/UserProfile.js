@@ -114,9 +114,9 @@ function MemberSinceTime(timeJoined) {
     const days_ago = hours_ago * 24;
     const years_ago = days_ago * 365;
     
-    if(time_ago > years_ago) return formattedTime + Math.round(time_ago/years_ago) + " years";
-    if(time_ago > days_ago) return formattedTime + Math.round(time_ago/days_ago) + " days";
-    if(time_ago > hours_ago) return formattedTime + Math.round(time_ago/hours_ago) + " hours";
-    if(time_ago > minutes_ago) return formattedTime + Math.round(time_ago/minutes_ago) + " minutes";
-    else return formattedTime + Math.round(time_ago/(1000)) + " seconds";
+    if(time_ago > years_ago) return formattedTime + Math.round(time_ago/years_ago) + " year" + ((Math.round(time_ago/years_ago) > 1) ? "s" : "");
+    if(time_ago > days_ago) return formattedTime + Math.round(time_ago/days_ago) + " day" + ((Math.round(time_ago/days_ago) > 1) ? "s" : "");
+    if(time_ago > hours_ago) return formattedTime + Math.round(time_ago/hours_ago) + " hour" + ((Math.round(time_ago/hours_ago) > 1) ? "s" : "");
+    if(time_ago > minutes_ago) return formattedTime + Math.round(time_ago/minutes_ago) + " minute" + ((Math.round(time_ago/minutes_ago) > 1) ? "s" : "");
+    else return formattedTime + Math.round(time_ago/(1000)) + " second" +  + ((Math.round(time_ago/1000) > 1) ? "s" : "");
 }

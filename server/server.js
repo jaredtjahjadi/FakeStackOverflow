@@ -300,18 +300,11 @@ app.get('/searchResults', (req, res) => {
  */
 app.get('/userData', (req, res) => {
     async function getUserData() {
-
         let user;
-
-        if(req.query.postedBy)
-            user = await User.findById(req.query.postedBy)
-
-        else
-            user = await User.findById(req.session.userId)
-
+        if(req.query.postedBy) user = await User.findById(req.query.postedBy)
+        else user = await User.findById(req.session.userId)
         res.send(user.username)
     }
-
     getUserData()
 })
 
@@ -385,7 +378,6 @@ app.post('/modifyAnswer', (req, res) => {
 })
 
 app.post('/deleteAnswer', (req, res) => {
-
     async function deleteAnswer() {
         try {
             const ans = await Answer.findOne({_id: req.body.aid})
@@ -430,7 +422,6 @@ app.get('/userFormattedAnswers/:questionId', (req, res) => {
 
 app.post('/deleteQuestion', (req, res) => {
     async function deleteQuestion() {
-
         // DON"T FORGET TO DELETE TAGS AND ANSWERS TOO!!!!
         try {
             const q = await Question.findById(req.body.qid)
@@ -462,17 +453,24 @@ app.post('/postAnswer', (req, res) => {
     postAnswer();
 })
 
-app.post('/incQVote', async(req, res) => {
-    await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { votes: 1}})
+// TODO: Constraints with current user's reputation
+// Increment/decrement the vote of a question or answer, which also affects the original poster's reputation
+app.post('/incVote', async(req, res) => {
+    const post = req.body;
+    if(post.qid) await Question.findByIdAndUpdate({_id: post.qid}, {$inc: {votes: 1}})
+    else await Answer.findByIdAndUpdate({_id: post.aid}, {$inc: {votes: 1}})
+    await User.findByIdAndUpdate({_id: post.postedBy}, {$inc: {reputation: 5}})
 })
-app.post('/decQVote', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { votes: -1}}) })
-app.post('/incAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: 1}}) })
-app.post('/decAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: -1}}) })
-app.post('/incCVote', async(req, res) => { await Comment.findByIdAndUpdate({_id: req.body.cid}, {$inc: { votes: 1}}) })
-app.post('/decCVote', async(req, res) => { await Comment.findByIdAndUpdate({_id: req.body.cid}, {$inc: { votes: -1}}) })
-app.post('/incrementView', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { views: 1}}) })
+app.post('/decVote', async(req, res) => {
+    const post = req.body;
+    if(post.qid) await Question.findByIdAndUpdate({_id: post.qid}, {$inc: {votes: -1}})
+    else await Answer.findByIdAndUpdate({_id: post.aid}, {$inc: {votes: -1}})
+    await User.findByIdAndUpdate({_id: post.postedBy}, {$inc: {reputation: -10}})
+})
+app.post('/incCVote', async(req, res) => { await Comment.findByIdAndUpdate({_id: req.body.cid}, {$inc: {votes: 1}}) })
+app.post('/incView', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: {views: 1}}) })
 
-app.post('/postQComment', (req, res) => {
+app.post('/postComment', (req, res) => {
     async function postComment() {
         try {
             const com = new Comment({
@@ -482,25 +480,9 @@ app.post('/postQComment', (req, res) => {
                 votes: 0
             })
             com.save();
-            await Question.findByIdAndUpdate({_id: req.body.qid}, { $push: { comments: com._id }})
+            if(req.body.qid) await Question.findByIdAndUpdate({_id: req.body.qid}, { $push: { comments: com._id }})
+            else await Answer.findByIdAndUpdate({_id: req.body.aid}, { $push: { comments: com._id }})
             res.status(200).send();
-        } catch(error) { console.log(error) }
-    }
-    postComment();
-})
-
-app.post('/postAComment', (req, res) => {
-    async function postComment() {
-        try {
-            const com = new Comment({
-                text: req.body.text,
-                posted_by: req.session.userId,
-                com_date_time: req.body.comDate,
-                votes: 0
-            })
-            com.save();
-            await Answer.findByIdAndUpdate({_id: req.body.aid}, { $push: { comments: com._id }})
-            res.status(200).send()
         } catch(error) { console.log(error) }
     }
     postComment();

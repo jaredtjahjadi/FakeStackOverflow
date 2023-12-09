@@ -120,10 +120,10 @@ function Question({question}) {
                 <div className="votes">
                     <p className="upvote" onClick={() => {
                         const incQVote = async() => {
-                                const q = question;
-                                setVotes(q.votes++);
-                            setDisplayedPost(q);
-                            try { await axios.post('http://localhost:8000/incQVote', q) }
+                            const q = question;
+                            q.votes++;
+                            setVotes(q.votes);
+                            try { await axios.post('http://localhost:8000/incVote', q) }
                             catch(error) { console.log(error) }
                         }
                         incQVote();
@@ -132,9 +132,9 @@ function Question({question}) {
                     <p className="downvote" onClick={() => {
                         const decQVote = async() => {
                             const q = question;
-                            setVotes(q.votes--);
-                            setDisplayedPost(q);
-                            try { await axios.post('http://localhost:8000/decQVote', q) }
+                            q.votes--;
+                            setVotes(q.votes);
+                            try { await axios.post('http://localhost:8000/decVote', q) }
                             catch(error) { console.log(error) }
                         }
                         decQVote();
@@ -152,7 +152,7 @@ function Question({question}) {
                             const q = question;
                             q.views++;
                             setDisplayedPost(q);
-                            try { await axios.post('http://localhost:8000/incrementView', q) }
+                            try { await axios.post('http://localhost:8000/incView', q) }
                             catch(error) { console.log(error) }
                         }
                         incrementView();
@@ -191,9 +191,6 @@ export function DateMetadata(props) {
         time_posted = new Date(c.comDate);
         posted_by = u;
         str = " commented "
-        console.log(c)
-        console.log(posted_by)
-        console.log(time_posted)
     }
     const time_ago = time_now - time_posted;
     const num_secs = Math.round((time_now - time_posted)/(1000));
@@ -205,14 +202,14 @@ export function DateMetadata(props) {
     const years_ago = days_ago * 365;
     let post_time = "";
     
-    if(time_ago > years_ago) post_time = posted_by + str + " on " + time_posted.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric',
+    if(time_ago > years_ago) post_time = str + " on " + time_posted.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric',
         hour: '2-digit', minute: '2-digit', hour12: false});
-    else if(time_ago > days_ago) post_time = posted_by + str + " on " + time_posted.toLocaleString('en-US', { month: 'long' }) + " " + time_posted.getDate() +
+    else if(time_ago > days_ago) post_time = str + " on " + time_posted.toLocaleString('en-US', { month: 'long' }) + " " + time_posted.getDate() +
         " at " + time_posted.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false});
-    else if(time_ago > hours_ago) post_time = posted_by + str + num_hours + " hour" + ((num_hours === 1) ? "" : "s") + " ago";
-    else if(time_ago > minutes_ago) post_time = posted_by + str + num_mins + " minute" + ((num_mins === 1) ? "" : "s") + " ago";
-    else post_time = posted_by + str + ((num_secs === 0) ? "just now" : num_secs + " second" + ((num_secs === 1) ? "" : "s") + " ago");
-    return ( <div className='time'>{post_time}</div> )
+    else if(time_ago > hours_ago) post_time = str + num_hours + " hour" + ((num_hours === 1) ? "" : "s") + " ago";
+    else if(time_ago > minutes_ago) post_time = str + num_mins + " minute" + ((num_mins === 1) ? "" : "s") + " ago";
+    else post_time =  str + ((num_secs === 0) ? "just now" : num_secs + " second" + ((num_secs === 1) ? "" : "s") + " ago");
+    return ( <div className='time'><strong>{posted_by}</strong>{post_time}</div> )
 }
 
 function QuestionNav() {
