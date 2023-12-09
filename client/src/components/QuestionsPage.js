@@ -80,7 +80,7 @@ function Questions() {
 function Question({question}) {
     const questionsInfo = useContext(QuestionsInfo);
     const setCurrPage = questionsInfo.setCurrPage;
-    const setDisplayedQuestion = questionsInfo.setDisplayedQuestion;
+    const setDisplayedPost = questionsInfo.setDisplayedPost;
     const [tags, setTags] = useState([])
     const [views, setViews] = useState(question.views)
     const [votes, setVotes] = useState(question.votes)
@@ -122,7 +122,7 @@ function Question({question}) {
                         const incQVote = async() => {
                                 const q = question;
                                 setVotes(q.votes++);
-                            setDisplayedQuestion(q);
+                            setDisplayedPost(q);
                             try { await axios.post('http://localhost:8000/incQVote', q) }
                             catch(error) { console.log(error) }
                         }
@@ -133,7 +133,7 @@ function Question({question}) {
                         const decQVote = async() => {
                             const q = question;
                             setVotes(q.votes--);
-                            setDisplayedQuestion(q);
+                            setDisplayedPost(q);
                             try { await axios.post('http://localhost:8000/decQVote', q) }
                             catch(error) { console.log(error) }
                         }
@@ -151,7 +151,7 @@ function Question({question}) {
                         const incrementView = async() => {
                             const q = question;
                             q.views++;
-                            setDisplayedQuestion(q);
+                            setDisplayedPost(q);
                             try { await axios.post('http://localhost:8000/incrementView', q) }
                             catch(error) { console.log(error) }
                         }
@@ -191,6 +191,9 @@ export function DateMetadata(props) {
         time_posted = new Date(c.comDate);
         posted_by = u;
         str = " commented "
+        console.log(c)
+        console.log(posted_by)
+        console.log(time_posted)
     }
     const time_ago = time_now - time_posted;
     const num_secs = Math.round((time_now - time_posted)/(1000));

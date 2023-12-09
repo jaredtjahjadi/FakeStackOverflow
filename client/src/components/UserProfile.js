@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios'
 import * as Constants from '../constants'
 
-export function UserProfile({setCurrPage, setDisplayedQuestion}) {
+export function UserProfile({setCurrPage, setDisplayedPost}) {
 
     const [userInfo, setUserInfo] = useState(0);
 
@@ -29,13 +29,13 @@ export function UserProfile({setCurrPage, setDisplayedQuestion}) {
                     {MemberSinceTime(userInfo.timeJoined)}
                 </p>
             </div>
-            <PostedQuestions setCurrPage={setCurrPage} setDisplayedQuestion={setDisplayedQuestion}/>
-            <AnsweredQuestions setCurrPage={setCurrPage} setDisplayedQuestion={setDisplayedQuestion}/>
+            <PostedQuestions setCurrPage={setCurrPage} setDisplayedPost={setDisplayedPost}/>
+            <AnsweredQuestions setCurrPage={setCurrPage} setDisplayedPost={setDisplayedPost}/>
         </div>
     )
 }
 
-export function PostedQuestions({setCurrPage, setDisplayedQuestion}) {
+export function PostedQuestions({setCurrPage, setDisplayedPost}) {
     const [postedQuestions, setPostedQuestions] = useState([])
 
     useEffect(() => {
@@ -52,30 +52,29 @@ export function PostedQuestions({setCurrPage, setDisplayedQuestion}) {
             <h3 className='profile-header'>Posted Questions</h3>
             <div>
                 {postedQuestions.length ? postedQuestions.map((q) => <PostedQuestion key={q.qid} question={q} 
-                setCurrPage={setCurrPage} setDisplayedQuestion={setDisplayedQuestion}/>) : 'No Questions'}
+                setCurrPage={setCurrPage} setDisplayedPost={setDisplayedPost}/>) : 'No Questions'}
             </div>
         </div>
     )
 }
 
-function PostedQuestion({question, setCurrPage, setDisplayedQuestion}) {
+function PostedQuestion({question, setCurrPage, setDisplayedPost}) {
     return (
-        <div className='title' onClick={() =>{
+        <div className='user-profile-question-title' onClick={() =>{
             setCurrPage(Constants.MODIFY_QUESTION_PAGE)
-            setDisplayedQuestion(question)
+            setDisplayedPost(question)
         }}>
             {question.title}
         </div>
     )
 }
 
-function AnsweredQuestions({setCurrPage, setDisplayedQuestion}) {
+function AnsweredQuestions({setCurrPage, setDisplayedPost}) {
     const [answeredQuestions, setAnsweredQuestions] = useState([])
 
     useEffect(() => {
         const getAnsweredQuestions = async () => {
             const answeredQuestions = await axios.get('http://localhost:8000/answeredQuestions')
-            console.log(answeredQuestions.data)
             setAnsweredQuestions(answeredQuestions.data)
         }
 
@@ -88,18 +87,16 @@ function AnsweredQuestions({setCurrPage, setDisplayedQuestion}) {
                 Answered Questions
             </h3>
             {answeredQuestions.length ? answeredQuestions.map(q => <AnsweredQuestion key={q.qid} question={q} 
-                setCurrPage={setCurrPage} setDisplayedQuestion={setDisplayedQuestion}/>) : 'No Questions'}
+                setCurrPage={setCurrPage} setDisplayedPost={setDisplayedPost}/>) : 'No Questions'}
         </>
     )
 }
 
-function AnsweredQuestion({question, setCurrPage, setDisplayedQuestion}) {
+function AnsweredQuestion({question, setCurrPage, setDisplayedPost}) {
     return (
-        <div className='title' onClick={() =>{
-            setCurrPage(Constants.MODIFY_ANSWER_PAGE)
-            setDisplayedQuestion(question)
-            console.log(question)
-
+        <div className='user-profile-question-title' onClick={() =>{
+            setCurrPage(Constants.SEE_USER_ANSWERS_PAGE)
+            setDisplayedPost(question)
         }}>
             {question.title}
         </div>

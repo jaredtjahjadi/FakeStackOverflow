@@ -14,20 +14,21 @@ export default function HomePage({setLoggedIn}) {
   const [typeResults, setTypeResults] = useState("All Questions");
 
   /**
-   * FOR JARED
+   * FOR JARED (again)
    * 
-   * This is a new change so that I don't have to copy and paste the form for modifiying and
-   * deleting a question again. The currDisplayedQuestion state now not only represents
-   * the question we are looking at the answer for, but also the question that is currently 
-   * being modified on the Post Question page.
+   * I need to keep track of the current answer being edited, so this is being called 
+   * currDisplayedPost so that when I switch from the user profile to editing an 
+   * answer, I can keep track of what answer we are editing in the first place,
+   * instead of specifically a current question.
    * 
-   * This depends on the page being displayed, and is interchangeable.
+   * All currDisplayQuestion and setCurrDisplayQuestion are now replaced with
+   * currDisplayedPost and setCurrDisplayed Post. Everything works the exact
+   * same, just use the new one to replace the old variable name.
    * 
    * - el torino
    */
 
-  const [currDisplayedQuestion, setDisplayedQuestion] = useState([])
-  const [username, setUsername] = useState("");
+  const [currDisplayedPost, setDisplayedPost] = useState([])
   
   const getNewestQuestions = async () => {
     await axios.get('http://localhost:8000/newestQuestions')
@@ -82,20 +83,6 @@ export default function HomePage({setLoggedIn}) {
     }
   }, [currFilter])
 
-  // This useEffect is done to dynamically fetch and render the user's username
-
-  useEffect(() => {
-
-    const getUsername = async () => {
-        await axios.get('http://localhost:8000/username')
-        .then(res => {
-          setUsername(res.data)
-        })
-    }
-
-    getUsername()
-  }, [])
-
   return (
     <>
         <QuestionsInfo.Provider value = {
@@ -112,8 +99,8 @@ export default function HomePage({setLoggedIn}) {
             setNumQuestions,
             typeResults,
             setTypeResults,
-            currDisplayedQuestion,
-            setDisplayedQuestion,
+            currDisplayedPost,
+            setDisplayedPost,
             getNewestQuestions,
             setLoggedIn
           }
