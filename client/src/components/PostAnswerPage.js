@@ -12,16 +12,6 @@ export default function PostAnswerPage() {
     const currDisplayedQuestion = questionsInfo.currDisplayedQuestion;
     const [formErrors, setFormErrors] = useState({});
 
-    const [userInfo, setUserInfo] = useState(0);
-
-    useEffect(() => {
-        const getUserInfo = async () => {
-            const userInfo = await axios.get('http://localhost:8000/userProfile')
-            setUserInfo(userInfo.data)
-        }
-        getUserInfo()
-    })
-
     const handleSubmit = async (event) => {
         event.preventDefault();
         const ansText = event.target.anstext.value.trim();
