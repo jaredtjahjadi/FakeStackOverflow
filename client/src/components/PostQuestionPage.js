@@ -4,30 +4,6 @@ import * as Constants from '../constants';
 import { QuestionsInfo } from './HomePage';
 import axios from 'axios'
 
-/**
- * FOR JARED (VERY IMPORTANT)
- * 
- * I realized that modifying a question is the same form as the PostQuestion form, 
- * so this component could be used for both purposes.
- * 
- * The idea here is that we check the page to see if we are either modifying or
- * posting. If we're posting, then we can proceed as usual when you did earlier
- * homeworks. If we're modifying, then we add a Delete Question button and fill
- * the fields with the question being modified using states to keep track of the
- * modifications using conditional rendering. We'll also use the boolean isModifiying
- * to choose whether to use the inputted data to make a new question or modify a 
- * question.
- * 
- * Don't worry about the warning regarding values and onChange. That has to do
- * with the Username component which we'll remove later.
- * 
- * TLDR It would've been messy to make a new form that does almost the same exact
- * thing so I borrowed your component to make my life easier :3
- * 
- * - @author el torino 
- * (wow I forgot I can do that with jsdoc)
- */
-
 export default function PostQuestionPage() {
     const emptyFieldStr = "This field must be filled out."
     const questionsInfo = useContext(QuestionsInfo);
@@ -55,8 +31,10 @@ export default function PostQuestionPage() {
 
     useEffect(() => {
         const getTags = async () => {
-            await axios.get('http://localhost:8000/tags', {params: currDisplayedPost.tags})
+            await axios.get('http://localhost:8000/tags', {params: currDisplayedPost.tagIds})
             .then(res => {
+                console.log(res)
+                console.log(currDisplayedPost)
                 let tagsInput = ""
                 res.data.map(tag => tagsInput += tag.name + " ")
                 setQuestionTags(tagsInput)
@@ -96,6 +74,7 @@ export default function PostQuestionPage() {
                         tags: questionTags,
                     }
                     await axios.post('http://localhost:8000/modifyQuestion', questionData)
+                    setCurrPage(Constants.USER_PROFILE);
                 }
                 
                 else {
@@ -111,16 +90,16 @@ export default function PostQuestionPage() {
                         comments: []
                     }
                     await axios.post('http://localhost:8000/addQuestion', questionData)
+                    await getNewestQuestions()
+                    setCurrPage(Constants.QUESTIONS_PAGE);
                 }
-
-                await getNewestQuestions()
-                setCurrPage(Constants.USER_PROFILE);
             } catch (error) { console.log(error); }
         } else setFormErrors(errors);
     }
 
     const handleDelete = async () => {
         await axios.post('http://localhost:8000/deleteQuestion', {qid: currDisplayedPost.qid})
+        await getNewestQuestions()
     }
 
     // Form validation: Add corresponding property to errors object if an error is found

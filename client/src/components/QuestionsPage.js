@@ -98,13 +98,13 @@ function Question({question}) {
         getTags();
     }, [question])
 
-    useEffect(() => {
-        const getViews = async() => {
-            await axios.get(`http://localhost:8000/views`, {params: question})
-            .then(res => { setViews(res.data) })
-        }
-        getViews();
-    }, [question])
+    // useEffect(() => {
+    //     const getViews = async() => {
+    //         await axios.get(`http://localhost:8000/views`, {params: question})
+    //         .then(res => { setViews(res.data) })
+    //     }
+    //     getViews();
+    // }, [question])
 
     useEffect(() => {
         const getQuestionUsername = async () => {
@@ -191,9 +191,6 @@ export function DateMetadata(props) {
         time_posted = new Date(c.comDate);
         posted_by = u;
         str = " commented "
-        console.log(c)
-        console.log(posted_by)
-        console.log(time_posted)
     }
     const time_ago = time_now - time_posted;
     const num_secs = Math.round((time_now - time_posted)/(1000));

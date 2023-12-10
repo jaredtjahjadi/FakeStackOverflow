@@ -52,8 +52,8 @@ function commentCreate(text, com_by) {
   return comment.save();
 }
 
-function tagCreate(name) {
-  let tag = new Tag({ name: name });
+function tagCreate(name, creator) {
+  let tag = new Tag({ name: name, created_by: creator});
   return tag.save();
 }
 
@@ -94,10 +94,10 @@ const populate = async () => {
   let u7 = await userCreate('saltyPeter', 'saltypeter@gmail.com', '123')
   let c1 = await commentCreate('This is a comment :)', u1)
   let c2 = await commentCreate('Good post! 1 Reddit Gold for you.', u7)
-  let t1 = await tagCreate('react');
-  let t2 = await tagCreate('javascript');
-  let t3 = await tagCreate('android-studio');
-  let t4 = await tagCreate('shared-preferences');
+  let t1 = await tagCreate('react', u6);
+  let t2 = await tagCreate('javascript', u7);
+  let t3 = await tagCreate('android-studio', u7);
+  let t4 = await tagCreate('shared-preferences', u7);
   let a1 = await answerCreate('React Router is mostly a wrapper around the history library. history handles interaction with the browser\'s window.\nhistory for you with its browser and hash histories. It also provides a memory history which is useful for environments that don\'t have a global history. This is particularly useful in mobile app development (react-native) and unit testing with Node.',
     u1, false);
   let a2 = await answerCreate('On my end, I like to have a single history object that I can carry even outside components. I like to have a single history.js file that I import on demand, and just manipulate it. You just have to change BrowserRouter to Router, and specify the history prop. This doesn\'t change anything for you, except that you have your own history object that you can manipulate as you want. You need to install history, the library used by react-router.',
