@@ -4,6 +4,17 @@ import axios from 'axios'
 import * as Constants from '../constants'
 import TagCard from './TagCard';
 
+/**
+ * @ Torin - I apologize in advance for the messiness in this file and any other files 💀
+ * but basically what i added at the bottom (the UserList and the Delete components), mainly for admin-specific
+ * privileges. i also added a new property for QuestionsInfo called currUserProfile that basically determines
+ * which userProfile is currently in view.
+ * 
+ * I also renamed populate_db.js to init.js and edited it to follow the HW doc's requirements of passing in admin
+ * email and password as arguments. I also updated the readme.
+ * 
+ * goes w/o saying but pls test user profile, deleting, and anything else on the website further if u can 🙏
+ */
 export function UserProfile({setCurrPage, setDisplayedPost}) {
     const questionsInfo = useContext(QuestionsInfo);
     const currUserProfile = questionsInfo.currUserProfile;

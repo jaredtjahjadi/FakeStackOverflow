@@ -28,7 +28,7 @@ app.use(cors({
 }))
 app.use(express.json())
 app.use(session({
-    secret: `howtf`,
+    secret: `howtf`, // felt
     cookie: {},
     resave: false,
     saveUninitialized: false,
