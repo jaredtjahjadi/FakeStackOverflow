@@ -67,21 +67,15 @@ const ADMIN = 'ADMIN'
     Routes for the Welcome page
 */
 
-app.get('/', (req,res) => {
-    if(req.session.userId) res.status(200).send() // Session for the user still exists
+const checkSession = ((req, res, next) => {
+    if(req.session.userId || req.session.guest) next()
     else return res.status(401).send() // Session expired
 })
-
-// const checkSession = ((req, res, next) => {
-//     if(req.session.userId) res.status(200).send() // Session for the user still exists
-//     else return res.status(401).send() // Session expired
-// })
-
-// app.use(checkSession)
 
 app.post('/register', async (req, res) => {
     User.find({email: req.body.email}).exec()
         .then(async users => {
+            console.log(users)
             if(users.length > 0)
                 return res.status(400).send({
                     message: "Email is already associated with an existing account."
@@ -127,6 +121,17 @@ app.post('/login', async (req, res) => {
 
     req.session.userId = user._id;
     res.status(200).send()
+})
+
+app.post('/guest', async (req, res) => {
+    req.session.guest = true;
+    res.status(200).send()
+})
+
+app.use(checkSession)
+
+app.get('/', (req,res) => {
+    res.send("fake_so visited")
 })
 
 /*

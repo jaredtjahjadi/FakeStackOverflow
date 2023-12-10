@@ -12,7 +12,7 @@ import axios from 'axios'
   the website's actual content.
 
   If you want to continue working on your part independently while the Welcome
-  page is in progress, set isLoggedIn to true in the component below.
+  page is in progress, set isAuthenticated to true in the component below.
 
   - el torino
 */
@@ -29,7 +29,8 @@ import axios from 'axios'
 export const UserInfo = createContext();
 
 export default function FakeStackOverflow() {
-  const [isLoggedIn, setLoggedIn] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(null)
+
 
   axios.defaults.withCredentials = true;
   /*
@@ -39,7 +40,7 @@ export default function FakeStackOverflow() {
   useEffect(() => {
     const verifyAuth = async () => {
       await axios.get('http://localhost:8000/')
-        .then(() => setLoggedIn(true))
+        .then(() => setIsAuthenticated(true))
         .catch(error => {
           if(!error.response)
             console.log("ERROR")
@@ -50,14 +51,13 @@ export default function FakeStackOverflow() {
     verifyAuth()
   }, [])
 
-  switch(isLoggedIn) {
-    case false:
-      return <WelcomePage setLoggedIn={setLoggedIn}/>
+  switch(isAuthenticated) {
 
-    case true:
-      return <HomePage setLoggedIn={setLoggedIn}/>
+    case null:
+      return <WelcomePage setIsAuthenticated={setIsAuthenticated}/>
+      break;
 
     default:
-      console.log("The state of the user is not defined!")
+      return <HomePage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated}/>
   }
 }

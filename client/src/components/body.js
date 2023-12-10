@@ -73,7 +73,10 @@ export function Menu() {
     
     const currPage = questionsInfo.currPage;
     const setCurrPage = questionsInfo.setCurrPage;
-    const setLoggedIn = questionsInfo.setLoggedIn
+    const setIsAuthenticated = questionsInfo.setIsAuthenticated
+    const isAuthenticated = questionsInfo.isAuthenticated
+
+    console.log(isAuthenticated)
 
     return (
         <div id="menu" className="column">
@@ -92,16 +95,18 @@ export function Menu() {
             >
                 Tags
             </div>
-            <div
-            className={currPage === Constants.USER_PROFILE ? "active" : undefined}
-                onClick={async () => {setCurrPage(Constants.USER_PROFILE)}}
-            >
-                User Profile
-            </div>
+            {isAuthenticated &&
+                <div
+                className={currPage === Constants.USER_PROFILE ? "active" : undefined}
+                    onClick={async () => {setCurrPage(Constants.USER_PROFILE)}}
+                >
+                    User Profile
+                </div>
+            }  
             <div
                 onClick={async () => {
                     await axios.post('http://localhost:8000/logout')
-                    setLoggedIn(false)
+                    setIsAuthenticated(null)
                 }}
             >
                 Logout
@@ -113,7 +118,7 @@ export function Menu() {
 // Can be exported to display on different pages depending on the page body.
 export function AskQuestion() {
     const questionsInfo = useContext(QuestionsInfo);
-    
+    const isAuthenticated = questionsInfo.isAuthenticated
     const setCurrPage = questionsInfo.setCurrPage;
     return (
         <div id="ask-question-container">
