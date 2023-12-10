@@ -9,12 +9,16 @@ let questionChunkInd = 0;
 // Contains all of the content specifically associated with the questions page.
 
 export default function QuestionsPage() {
+
+    const questionsInfo = useContext(QuestionsInfo);
+    const isAuthenticated = questionsInfo.isAuthenticated
+
     return (
         <>
             <div id="questions-header-container">
                 <div id="questions-header">
                     <h1 id="type-results-header">{useContext(QuestionsInfo).typeResults}</h1>
-                    <AskQuestion />
+                    {isAuthenticated == true && <AskQuestion />}
                 </div>
                 <div id="question-filter">
                     <p id="num-questions">{useContext(QuestionsInfo).numQuestions} questions</p>
@@ -81,6 +85,7 @@ function Question({question}) {
     const questionsInfo = useContext(QuestionsInfo);
     const setCurrPage = questionsInfo.setCurrPage;
     const setDisplayedPost = questionsInfo.setDisplayedPost;
+    const isAuthenticated = questionsInfo.isAuthenticated
     const [tags, setTags] = useState([])
     const [views, setViews] = useState(question.views)
     const [votes, setVotes] = useState(question.votes)
@@ -165,7 +170,7 @@ function Question({question}) {
                 </div>
                 <DateMetadata question={question} user={username} />
             </div>
-            <Comments question={question} />
+            {isAuthenticated == true && <Comments question={question} />}
         </div>
     )
 }

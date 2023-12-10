@@ -9,7 +9,7 @@ import axios from 'axios'
     is the actual website's content.
 */
 
-export default function WelcomePage({setLoggedIn}) {
+export default function WelcomePage({setIsAuthenticated}) {
 
     const [currPage, setCurrPage] = useState(Constants.SPLASH_PAGE)
 
@@ -17,11 +17,11 @@ export default function WelcomePage({setLoggedIn}) {
 
     switch(currPage) {
         case Constants.SPLASH_PAGE:
-            content = <SplashPage setCurrPage={setCurrPage}/>;
+            content = <SplashPage setCurrPage={setCurrPage} setIsAuthenticated={setIsAuthenticated}/>;
             break;
 
         case Constants.LOGIN_PAGE:
-            content = <Login setCurrPage={setCurrPage} setLoggedIn={setLoggedIn}/>;
+            content = <Login setCurrPage={setCurrPage} setIsAuthenticated={setIsAuthenticated}/>;
             break;
 
         case Constants.REGISTER_PAGE:
@@ -42,7 +42,7 @@ export default function WelcomePage({setLoggedIn}) {
     )
 }
 
-function SplashPage({setCurrPage}) {
+function SplashPage({setCurrPage, setIsAuthenticated}) {
     return (
         <>
             <div id="welcome-options">
@@ -52,7 +52,10 @@ function SplashPage({setCurrPage}) {
                 <button className="welcome-button" onClick={() => setCurrPage(Constants.REGISTER_PAGE)}>
                     Register
                 </button>
-                <button className="welcome-button">
+                <button className="welcome-button" onClick={async () => {
+                    await axios.post('http://localhost:8000/guest')
+                    setIsAuthenticated(false)
+                }}>
                     Continue as Guest
                 </button>
             </div>
@@ -60,7 +63,7 @@ function SplashPage({setCurrPage}) {
     )
 }
 
-function Login({setCurrPage, setLoggedIn}) {
+function Login({setCurrPage, setIsAuthenticated}) {
     const [email, setEmail] = useState("")
     const [emailError, setEmailError] = useState("")
     const [password, setPassword] = useState("")
@@ -80,7 +83,7 @@ function Login({setCurrPage, setLoggedIn}) {
         loginUser()
             .then(() => {
                 setPassword('') // security reasons
-                setLoggedIn(true)
+                setIsAuthenticated(true)
             })
             .catch(error => {
                 console.log(error.response)
@@ -135,6 +138,13 @@ function Register({setCurrPage}) {
         const emailRegex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
         const passwordRegex = new RegExp(username + '|' + email.substring(0, email.indexOf('@')), "gi")
 
+        if(username.length == 0) {
+            setUsernameError("Invalid username.")
+            return
+        }
+        else
+            setUsernameError("")
+
         // Email should have a correct format.
         if(!emailRegex.test(email)) {
             setEmailError("Invalid email.")
@@ -142,6 +152,13 @@ function Register({setCurrPage}) {
         }
         else
             setEmailError("")
+
+        if(password.length == 0) {
+            setPasswordError("Invalid password")
+            return
+        }
+        else
+            setPasswordError("")
 
         // The typed password should not contain the username or the email id.
         if(passwordRegex.test(password)) {
@@ -176,7 +193,7 @@ function Register({setCurrPage}) {
             })
             .catch(error => {
                 if(!error.response)
-                    console.log("Server is down. Try again later.")
+                    alert("Server is down. Try again later.")
                 else
                     setEmailError("Email is already associated with an existing user.")
             })

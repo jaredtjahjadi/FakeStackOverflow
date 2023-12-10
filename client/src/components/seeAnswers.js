@@ -13,6 +13,7 @@ export function SeeAnswers() {
     const currDisplayedPost = questionsInfo.currDisplayedPost;
     const setCurrPage = questionsInfo.setCurrPage;
     const setDisplayedPost = questionsInfo.setDisplayedPost
+    const isAuthenticated = questionsInfo.isAuthenticated
     const [answers, setAnswers] = useState([]);
     const [currDisplayedAnswers, setDisplayedAnswers] = useState([]);
     const [username, setUsername] = useState('');
@@ -70,7 +71,7 @@ export function SeeAnswers() {
                 <div id='question-metadata-top'>
                     <div id='num-answers'>{currDisplayedPost ? currDisplayedPost.ansIds.length : 0} answers</div>
                     <p id='question-metadata-title'>{currDisplayedPost.title}</p>
-                    <AskQuestion />
+                    {isAuthenticated ? <AskQuestion /> : <div/>}
                 </div>
                 <div id='question-metadata-bottom'>
                     <div id='num-views'>{currDisplayedPost.views} views</div>
@@ -80,9 +81,11 @@ export function SeeAnswers() {
             </div>
             <div id='answers'>{currDisplayedAnswers.map((ans, index) => <Answer key={ans.aid} answer={ans} setCurrPage={setCurrPage} 
                 setDisplayedPost={setDisplayedPost} isUsers={index < userAnswersEndInd} setAnswers={setAnswers} answers={answers}/>)}</div>
-            <div id='answer-question-container'>
-                <button id='answer-question' onClick={() => setCurrPage(Constants.POST_ANSWER_PAGE)}>Answer Question</button>
-            </div>
+            {isAuthenticated == true &&
+                <div id='answer-question-container'>
+                    <button id='answer-question' onClick={() => setCurrPage(Constants.POST_ANSWER_PAGE)}>Answer Question</button>
+                </div>
+            }
             {answers.length > 5 && <AnswerNav ans={answers} setDisplayedAnswers={setDisplayedAnswers} />}
         </div>
     )
@@ -91,6 +94,13 @@ export function SeeAnswers() {
 function Answer({answer, setCurrPage, setDisplayedPost, isUsers, setAnswers, answers}) {
     const [username, setUsername] = useState('');
     const questionsInfo = useContext(QuestionsInfo)
+    const isAuthenticated = questionsInfo.isAuthenticated
+
+    let answerContainerType = "answer-container-guest";
+
+    if(isAuthenticated === true)
+        answerContainerType = "answer-container-user";
+
 
     useEffect(() => {
         const getAnswerUsername = async () => {
@@ -101,29 +111,31 @@ function Answer({answer, setCurrPage, setDisplayedPost, isUsers, setAnswers, ans
     }, [answer])
     return (
         <div>
-            <div id={answer.aid} className='answer-container'>
-                <div className="votes">
-                    <p className="upvote" onClick={() => {
-                        const incQVote = async() => {
-                            try { await axios.post('http://localhost:8000/incAVote', answer) }
-                            catch(error) { console.log(error) }
-                        }
-                        incQVote();
-                    }}>🡅</p>
-                    {answer.votes}
-                    <p className="downvote" onClick={() => {
-                        const decQVote = async() => {
-                            try { await axios.post('http://localhost:8000/decAVote', answer) }
-                            catch(error) { console.log(error) }
-                        }
-                        decQVote();
-                    }}>🡇</p>
-                </div>
+            <div id={answer.aid} className={answerContainerType}>
+                {isAuthenticated && 
+                    <div className="votes">
+                        <p className="upvote" onClick={() => {
+                            const incQVote = async() => {
+                                try { await axios.post('http://localhost:8000/incAVote', answer) }
+                                catch(error) { console.log(error) }
+                            }
+                            incQVote();
+                        }}>🡅</p>
+                        {answer.votes}
+                        <p className="downvote" onClick={() => {
+                            const decQVote = async() => {
+                                try { await axios.post('http://localhost:8000/decAVote', answer) }
+                                catch(error) { console.log(error) }
+                            }
+                            decQVote();
+                        }}>🡇</p>
+                    </div>
+                }
                 <div className='answer-text'><Text text={answer.text} /></div>
                 <DateMetadata answer={answer} user={username} />
             </div>
 
-            {questionsInfo.currPage !== Constants.SEE_USER_ANSWERS_PAGE && <Comments answer={answer} />}
+            {questionsInfo.currPage !== Constants.SEE_USER_ANSWERS_PAGE && isAuthenticated == true && <Comments answer={answer} />}
             {questionsInfo.currPage === Constants.SEE_USER_ANSWERS_PAGE && isUsers === true &&
                 <button className='modify-button' onClick={() => {
                     setCurrPage(Constants.MODIFY_ANSWER_PAGE)

@@ -356,10 +356,16 @@ body { font-family: Arial; }
 
 #answers > div { border-bottom: dotted; }
 
-.answer-container
+.answer-container-user
 {
     display: grid;
     grid-template-columns: 5% 70% 25%;
+}
+
+.answer-container-guest
+{
+    display: grid;
+    grid-template-columns: 75% 25%;
 }
 
 .answer-text
@@ -455,4 +461,10 @@ body { font-family: Arial; }
 
 #tag-edit {
     text-align:center
+}
+
+.all-tags {
+    text-align:center;
+    float: left;
+    margin-right: 160px;
 }

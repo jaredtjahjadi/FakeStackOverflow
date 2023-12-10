@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { AskQuestion } from './body';
 import TagCard from './TagCard';
 import axios from 'axios';
+import { QuestionsInfo } from './HomePage';
 
 export default function TagsPage() {
+    const questionsInfo = useContext(QuestionsInfo)
+    const isAuthenticated = questionsInfo.isAuthentiated
+
     const [tags, setTags] = useState([]);
     useEffect(() => {
         const getTags = async () => {
@@ -20,7 +24,7 @@ export default function TagsPage() {
             <div id="tags-page-header">
                 <div className="num-tags"><h1>{numTags} Tags</h1></div>
                 <div className="all-tags"><h1>All Tags</h1></div>
-                <AskQuestion />
+                {isAuthenticated ? <AskQuestion /> : <div/>}
             </div>
             <div id="tags-page-content">{tagCards}</div>
         </div>

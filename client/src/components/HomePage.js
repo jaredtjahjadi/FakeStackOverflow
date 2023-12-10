@@ -5,7 +5,7 @@ import axios from 'axios'
 
 export const QuestionsInfo = createContext();
 
-export default function HomePage({setLoggedIn}) {
+export default function HomePage({isAuthenticated, setIsAuthenticated}) {
   const [currPage, setCurrPage] = useState(Constants.QUESTIONS_PAGE);
   const [currFilter, setCurrFilter] = useState(Constants.NEWEST_FILTER);
   const [allQuestions, setAllQuestions] = useState([]);
@@ -102,7 +102,8 @@ export default function HomePage({setLoggedIn}) {
             currDisplayedPost,
             setDisplayedPost,
             getNewestQuestions,
-            setLoggedIn
+            setIsAuthenticated,
+            isAuthenticated
           }
         }>
           <div id="header" className="header">
@@ -126,7 +127,6 @@ export default function HomePage({setLoggedIn}) {
           })
           .then(res => {
             const questions = res.data;
-            console.log(questions)
             setNumQuestions(questions.length)
             setTypeResults("Search Results")
             setDisplayedQuestions(questions);
