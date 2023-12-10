@@ -31,7 +31,6 @@ export function SeeAnswers() {
         let isMounted = true;
         const getAnswers = async() => {
             try {
-
                 let res;
 
                 if(questionsInfo.currPage === Constants.SEE_USER_ANSWERS_PAGE) {
@@ -47,8 +46,7 @@ export function SeeAnswers() {
                     setAnswers(res.data);
                 }
 
-                if(isMounted)
-                    answerChunkInd = 0;
+                if(isMounted) answerChunkInd = 0;
 
             } catch(error) { console.log(error) }
         }
@@ -81,7 +79,7 @@ export function SeeAnswers() {
             </div>
             <div id='answers'>{currDisplayedAnswers.map((ans, index) => <Answer key={ans.aid} answer={ans} setCurrPage={setCurrPage} 
                 setDisplayedPost={setDisplayedPost} isUsers={index < userAnswersEndInd} setAnswers={setAnswers} answers={answers}/>)}</div>
-            {isAuthenticated == true &&
+            {isAuthenticated &&
                 <div id='answer-question-container'>
                     <button id='answer-question' onClick={() => setCurrPage(Constants.POST_ANSWER_PAGE)}>Answer Question</button>
                 </div>
@@ -96,11 +94,7 @@ function Answer({answer, setCurrPage, setDisplayedPost, isUsers, setAnswers, ans
     const questionsInfo = useContext(QuestionsInfo)
     const isAuthenticated = questionsInfo.isAuthenticated
 
-    let answerContainerType = "answer-container-guest";
-
-    if(isAuthenticated === true)
-        answerContainerType = "answer-container-user";
-
+    const [votes, setVotes] = useState(answer.votes);
 
     useEffect(() => {
         const getAnswerUsername = async () => {
@@ -111,32 +105,44 @@ function Answer({answer, setCurrPage, setDisplayedPost, isUsers, setAnswers, ans
     }, [answer])
     return (
         <div>
-            <div id={answer.aid} className={answerContainerType}>
-                {isAuthenticated && 
-                    <div className="votes">
-                        <p className="upvote" onClick={() => {
-                            const incQVote = async() => {
-                                try { await axios.post('http://localhost:8000/incAVote', answer) }
-                                catch(error) { console.log(error) }
-                            }
-                            incQVote();
-                        }}>🡅</p>
-                        {answer.votes}
-                        <p className="downvote" onClick={() => {
-                            const decQVote = async() => {
-                                try { await axios.post('http://localhost:8000/decAVote', answer) }
-                                catch(error) { console.log(error) }
-                            }
-                            decQVote();
-                        }}>🡇</p>
-                    </div>
-                }
+            <div id={answer.aid} className="answer-container">
+                <div className="votes">
+                    <p className="upvote" onClick={() => {
+                        if(!isAuthenticated) {
+                            alert("Guest users are not permitted to vote. Please register.")
+                            return;
+                        }
+                        const incVote = async() => {
+                            const a = answer;
+                            a.votes++;
+                            setVotes(a.votes);
+                            try { await axios.post('http://localhost:8000/incVote', answer) }
+                            catch(error) { console.log(error) }
+                        }
+                        incVote();
+                    }}>🡅</p>
+                    {votes}
+                    <p className="downvote" onClick={() => {
+                        if(!isAuthenticated) {
+                            alert("Guest users are not permitted to vote. Please register.")
+                            return;
+                        }
+                        const decVote = async() => {
+                            const a = answer;
+                            a.votes--;
+                            setVotes(a.votes);
+                            try { await axios.post('http://localhost:8000/decVote', answer) }
+                            catch(error) { console.log(error) }
+                        }
+                        decVote();
+                    }}>🡇</p>
+                </div>
                 <div className='answer-text'><Text text={answer.text} /></div>
                 <DateMetadata answer={answer} user={username} />
             </div>
 
-            {questionsInfo.currPage !== Constants.SEE_USER_ANSWERS_PAGE && isAuthenticated == true && <Comments answer={answer} />}
-            {questionsInfo.currPage === Constants.SEE_USER_ANSWERS_PAGE && isUsers === true &&
+            {questionsInfo.currPage !== Constants.SEE_USER_ANSWERS_PAGE && isAuthenticated && <Comments answer={answer} />}
+            {questionsInfo.currPage === Constants.SEE_USER_ANSWERS_PAGE && isUsers &&
                 <button className='modify-button' onClick={() => {
                     setCurrPage(Constants.MODIFY_ANSWER_PAGE)
                     setDisplayedPost(answer)
@@ -144,7 +150,7 @@ function Answer({answer, setCurrPage, setDisplayedPost, isUsers, setAnswers, ans
                     Modify
                 </button>
             }
-            {questionsInfo.currPage === Constants.SEE_USER_ANSWERS_PAGE && isUsers === true &&
+            {questionsInfo.currPage === Constants.SEE_USER_ANSWERS_PAGE && isUsers &&
                 <button className='modify-button' onClick={async () => {
                     await axios.post('http://localhost:8000/deleteAnswer', {aid: answer.aid})
                     setAnswers(answers.filter(ans => ans.aid !== answer.aid))

@@ -61,9 +61,7 @@ export function Main() {
     }
 
     return (
-        <div id='main' className='main'>
-            {mainContent}
-        </div>
+        <div id='main' className='main'>{mainContent}</div>
     )
 }
 

@@ -356,16 +356,9 @@ body { font-family: Arial; }
 
 #answers > div { border-bottom: dotted; }
 
-.answer-container-user
-{
+.answer-container {
     display: grid;
     grid-template-columns: 5% 70% 25%;
-}
-
-.answer-container-guest
-{
-    display: grid;
-    grid-template-columns: 75% 25%;
 }
 
 .answer-text
