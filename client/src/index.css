@@ -452,3 +452,7 @@ body { font-family: Arial; }
     text-decoration: underline;
     cursor: pointer;
 }
+
+#tag-edit {
+    text-align:center
+}

@@ -14,6 +14,8 @@ export const ACTIVE_FILTER = 'ACTIVE_FILTER';
 
 export const UNANSWERED_FILTER = 'UNANSWERED_FILTER';
 
+export const TAGS_FILTER = 'TAGS_FILTER'
+
 export const SEARCH_FILTER = 'SEARCH_FILTER';
 
 export const SEE_ANSWERS_PAGE = 'SEE_ANSWERS_PAGE';

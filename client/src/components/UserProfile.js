@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios'
 import * as Constants from '../constants'
+import TagCard from './TagCard';
 
 export function UserProfile({setCurrPage, setDisplayedPost}) {
 
@@ -31,6 +32,7 @@ export function UserProfile({setCurrPage, setDisplayedPost}) {
             </div>
             <PostedQuestions setCurrPage={setCurrPage} setDisplayedPost={setDisplayedPost}/>
             <AnsweredQuestions setCurrPage={setCurrPage} setDisplayedPost={setDisplayedPost}/>
+            <UsedTags setCurrPage={setCurrPage} />
         </div>
     )
 }
@@ -100,6 +102,36 @@ function AnsweredQuestion({question, setCurrPage, setDisplayedPost}) {
         }}>
             {question.title}
         </div>
+    )
+}
+
+function UsedTags() {
+    const [usedTags, setUsedTags] = useState([])
+
+    useEffect(() => {
+        const getUsedTags = async () => {
+            const res = await axios.get('http://localhost:8000/usedTags')
+            setUsedTags(res.data)
+        }
+
+        getUsedTags()
+    }, [])
+
+    return (
+        <>
+            <h3 className='profile-header'>
+                Created Tags
+            </h3>
+            {usedTags.length ? (
+                <div id='tags-page-content'>
+                    {usedTags.map(t => <TagCard key={t.tid} tag={t} isUsers={true} setUsedTags={setUsedTags} usedTags={usedTags}/>)}
+                </div>
+            ) : (
+                <div> 
+                    No Tags
+                </div>
+            )}
+        </>
     )
 }
 

@@ -70,8 +70,14 @@ const ADMIN = 'ADMIN'
 app.get('/', (req,res) => {
     if(req.session.userId) res.status(200).send() // Session for the user still exists
     else return res.status(401).send() // Session expired
-    
 })
+
+// const checkSession = ((req, res, next) => {
+//     if(req.session.userId) res.status(200).send() // Session for the user still exists
+//     else return res.status(401).send() // Session expired
+// })
+
+// app.use(checkSession)
 
 app.post('/register', async (req, res) => {
     User.find({email: req.body.email}).exec()
@@ -205,6 +211,38 @@ app.get('/tags', (req, res) => {
     } catch(error) { console.error(error) }
 })
 
+app.get('/usedTags', async (req, res) => {
+
+    try {
+        const tags = await Tag.find({created_by: req.session.userId})
+        res.send(formatTags(tags))
+    } catch(error) { console.error(error) }
+})
+
+app.post('/modifyTag', async (req, res) => {
+    try {
+        const tags = await Tag.findOneAndUpdate({created_by: req.session.userId}, {$set: req.body})
+        res.send(formatTags(tags))
+    } catch(error) { console.error(error) }
+})
+
+app.post('/deleteTag', async (req, res) => {
+    try {
+        await Tag.deleteOne({_id: req.body.tid})
+        res.status(200).send()
+    } catch(error) { console.error(error) }
+})
+
+app.get('/tagExists/:tagName', async (req, res) => {
+    try {
+        const tag = await Tag.findOne({name: req.params.tagName})
+        if(!tag)
+            res.status(200).send()
+        else
+            res.status(404).send()
+    } catch(error) { console.error(error) }
+})
+
 app.get('/questions/:questionId/comments', async (req, res) => {
     const q = await Question.findById(req.params.questionId);
     Comment.find({_id: {$in: q.comments}}).exec().then(comments => {
@@ -322,7 +360,7 @@ app.post('/addQuestion', (req, res) => {
             data.posted_by = await User.findOne({_id: req.session.userId}, {_id: 1})
             const tagIds = []
             /*
-                Search for the tag IDs associated with the given tag names, 
+                Search for the tag IDs associated with the given tag names,
                 and insert them into the new question document
             */
             await Tag.find({ name: {$in: data.tags}}).exec()
@@ -332,7 +370,7 @@ app.post('/addQuestion', (req, res) => {
                         if(tag != undefined) tagIds.push(tag._id)
                         else {
                             // Create a new tag if not found
-                            const tag = new Tag({name: t})
+                            const tag = new Tag({name: t, created_by: req.session.userId})
                             tag.save()
                             tagIds.push(tag._id)
                         }
@@ -356,7 +394,7 @@ app.post('/modifyQuestion', (req, res) => {
             for(let tagName of req.body.tags) {
                 let foundTag = await Tag.findOne({name: tagName})
                 if(foundTag == null) {
-                    const newTag = new Tag({name: tagName})
+                    const newTag = new Tag({name: tagName, created_by: req.session.userId})
                     newTag.save()
                     tags.push(newTag._id)
                 }
@@ -565,7 +603,8 @@ function formatTags(tags) {
         let t = tags[i];
         tags[i] = {
             tid: t._id,
-            name: t.name
+            name: t.name,
+            created_by: t.created_by
         }
     }
     return tags;
