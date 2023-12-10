@@ -4,7 +4,6 @@ import * as Constants from '../constants'
 import TagCard from './TagCard';
 
 export function UserProfile({setCurrPage, setDisplayedPost}) {
-
     const [userInfo, setUserInfo] = useState(0);
 
     useEffect(() => {
@@ -13,7 +12,6 @@ export function UserProfile({setCurrPage, setDisplayedPost}) {
             const userInfo = await axios.get('http://localhost:8000/userProfile')
             setUserInfo(userInfo.data)
         }
-
         getUserInfo()
     }, [])
 
@@ -119,17 +117,13 @@ function UsedTags() {
 
     return (
         <>
-            <h3 className='profile-header'>
-                Created Tags
-            </h3>
+            <h3 className='profile-header'>Created Tags</h3>
             {usedTags.length ? (
                 <div id='tags-page-content'>
                     {usedTags.map(t => <TagCard key={t.tid} tag={t} isUsers={true} setUsedTags={setUsedTags} usedTags={usedTags}/>)}
                 </div>
             ) : (
-                <div> 
-                    No Tags
-                </div>
+                <div>No Tags</div>
             )}
         </>
     )

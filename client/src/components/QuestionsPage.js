@@ -9,7 +9,6 @@ let questionChunkInd = 0;
 // Contains all of the content specifically associated with the questions page.
 
 export default function QuestionsPage() {
-
     const questionsInfo = useContext(QuestionsInfo);
     const isAuthenticated = questionsInfo.isAuthenticated
 
@@ -89,6 +88,7 @@ function Question({question}) {
     const [tags, setTags] = useState([])
     const [votes, setVotes] = useState(question.votes)
     const [username, setUsername] = useState('')
+    const [currUserRep, setCurrUserRep] = useState(0)
 
     let qid = question.qid;
     let currTitleTagsContainer = qid + "-title-tags-container";
@@ -102,6 +102,7 @@ function Question({question}) {
         getTags();
     }, [question])
 
+    // Username of the user who posted the current question
     useEffect(() => {
         const getQuestionUsername = async () => {
             await axios.get('http://localhost:8000/userData', {params: question })
@@ -109,6 +110,15 @@ function Question({question}) {
         }
         getQuestionUsername();
     }, [question])
+
+    // Reputation of the user currently logged in. Used to verify reputation constraints.
+    useEffect(() => {
+        const getUserRep = async () => {
+            await axios.get('http://localhost:8000/currUser')
+            .then(res => { setCurrUserRep(res.data.reputation)})
+        }
+        getUserRep();
+    }, [])
 
     return (
         <div className="question">
@@ -121,10 +131,15 @@ function Question({question}) {
                         }
                         const incVote = async() => {
                             const q = question;
-                            q.votes++;
-                            setVotes(q.votes);
+                            if(currUserRep > 50) {
+                                q.votes++;
+                                setVotes(q.votes);
+                            }
                             try { await axios.post('http://localhost:8000/incVote', q) }
-                            catch(error) { console.log(error) }
+                            catch(error) {
+                                console.log(error)
+                                alert(error.response.data.message)
+                            }
                         }
                         incVote();
                     }}>🡅</p>
@@ -136,10 +151,15 @@ function Question({question}) {
                         }
                         const decVote = async() => {
                             const q = question;
-                            q.votes--;
-                            setVotes(q.votes);
+                            if(currUserRep > 50) {
+                                q.votes--;
+                                setVotes(q.votes);
+                            }
                             try { await axios.post('http://localhost:8000/decVote', q) }
-                            catch(error) { console.log(error) }
+                            catch(error) {
+                                console.log(error)
+                                alert(error.response.data.message)
+                            }
                         }
                         decVote();
                     }}>🡇</p>

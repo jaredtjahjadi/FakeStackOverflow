@@ -56,11 +56,11 @@ export function SeeAnswers() {
     }, [questionsInfo.currPage, currDisplayedPost.qid])
 
     useEffect(() => {
-        const getQuestionUserData = async () => {
+        const getAnswerUsername = async () => {
             await axios.get('http://localhost:8000/userData', {params: currDisplayedPost })
             .then(res => { setUsername(res.data) })
         }
-        getQuestionUserData();
+        getAnswerUsername();
     }, [currDisplayedPost])
 
     return (
@@ -109,7 +109,7 @@ function Answer({answer, setCurrPage, setDisplayedPost, isUsers, setAnswers, ans
                 <div className="votes">
                     <p className="upvote" onClick={() => {
                         if(!isAuthenticated) {
-                            alert("Guest users are not permitted to vote. Please register.")
+                            alert(Constants.GUEST_VOTE_ERROR)
                             return;
                         }
                         const incVote = async() => {
@@ -124,7 +124,7 @@ function Answer({answer, setCurrPage, setDisplayedPost, isUsers, setAnswers, ans
                     {votes}
                     <p className="downvote" onClick={() => {
                         if(!isAuthenticated) {
-                            alert("Guest users are not permitted to vote. Please register.")
+                            alert(Constants.GUEST_VOTE_ERROR)
                             return;
                         }
                         const decVote = async() => {

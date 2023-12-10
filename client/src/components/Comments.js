@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { DateMetadata, splitArray } from "./QuestionsPage";
 import { ErrorMessage } from "./PostQuestionPage";
 import { Text } from "./SeeAnswers";
+import * as Constants from '../constants';
 import axios from "axios";
 
 let commentChunkInd = 0;
@@ -14,7 +15,6 @@ let commentChunkInd = 0;
 export default function Comments(props) {
     let question = props.question;
     let answer = props.answer;
-    const emptyFieldStr = "This field must be filled out.";
     const [comments, setComments] = useState([]);
     const [currDisplayedComments, setDisplayedComments] = useState([]);
     const [insertComment, showInsertComment] = useState(false);
@@ -33,9 +33,7 @@ export default function Comments(props) {
         getComments();
     }, [question, answer])
 
-    useEffect(() => {
-        setDisplayedComments(comments.slice(commentChunkInd * 3, (commentChunkInd * 3) + 3));
-    }, [comments])
+    useEffect(() => { setDisplayedComments(comments.slice(commentChunkInd * 3, (commentChunkInd * 3) + 3)) }, [comments])
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -65,13 +63,16 @@ export default function Comments(props) {
                 }
                 await axios.post('http://localhost:8000/postComment', comment)
                 setComments([comment, ...comments])
-            } catch { console.log(errors); }
+            } catch(error) {
+                console.log(error);
+                alert(error.response.data.message);
+            }
         } else setFormErrors(errors);
     }
 
     const validateForm = ({commentText}) => {
         const errors = {};
-        if(commentText.length === 0) errors.commentText = emptyFieldStr;
+        if(commentText.length === 0) errors.commentText = Constants.EMPTY_FIELD_ERROR;
         const tokens = commentText.match(/\[[^\]]*\]\([^)]*\)/g); // [...](...). "..." = anything (including empty string)
         const regex = /\[.+?\]\(\s*(https:\/\/|http:\/\/)[^)](.*?)\)/g; // [text](link)
         if(tokens) {

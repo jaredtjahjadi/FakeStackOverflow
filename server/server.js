@@ -145,9 +145,25 @@ app.get('/postedQuestions', (req, res) => {
     Routes for the main fake_so page
 */
 
-app.get('/username', (req, res) => {
+/**
+ * This route is used to retrieve the current user's username, reputation, and role.
+ * The current user's reputation is needed in order to check the user's reputation against
+ * some constraints related to reputation (i.e., needs at least 50 reputation in order to vote).
+ * The current user's role is needed in order to determine the permissions the user is able to do
+ * (e.g., admins can delete other user's posts).
+ * The password is set to undefined in order to maintain security.
+ * 
+ * This is the best way I could figure out how to get data of the current user, feel free to change
+ * if a better way is found.
+ */
+app.get('/currUser', (req, res) => {
     const user = User.find({_id: req.session.userId})
-    res.send(user.username)
+    user.password = undefined;
+    res.send({
+        username: user.username,
+        reputation: user.reputation,
+        role: user.role
+    })
 })
 
 app.get('/newestQuestions', (req, res) => {
@@ -204,7 +220,6 @@ app.get('/tags', (req, res) => {
 })
 
 app.get('/usedTags', async (req, res) => {
-
     try {
         const tags = await Tag.find({created_by: req.session.userId})
         res.send(formatTags(tags))
@@ -228,10 +243,8 @@ app.post('/deleteTag', async (req, res) => {
 app.get('/tagExists/:tagName', async (req, res) => {
     try {
         const tag = await Tag.findOne({name: req.params.tagName})
-        if(!tag)
-            res.status(200).send()
-        else
-            res.status(404).send()
+        if(!tag) res.status(200).send()
+        else res.status(404).send()
     } catch(error) { console.error(error) }
 })
 
@@ -340,22 +353,29 @@ app.get('/userData', (req, res) => {
 
 app.post('/addQuestion', (req, res) => {
     async function addQuestion() {
-        try{
+        const currUserId = req.session.userId;
+        try {
             const data = req.body
-            data.posted_by = await User.findOne({_id: req.session.userId}, {_id: 1})
+            data.posted_by = await User.findOne({_id: currUserId}, {_id: 1, reputation: 1})
             const tagIds = []
             /*
                 Search for the tag IDs associated with the given tag names,
                 and insert them into the new question document
             */
+
             await Tag.find({ name: {$in: data.tags}}).exec()
                 .then(tags => {
+                    // Iterate through the tags passed in the form
                     for(t of data.tags) {
-                        let tag = tags.find(tag => tag.name == t)
-                        if(tag != undefined) tagIds.push(tag._id)
+                        let tag = tags.find(tag => tag.name == t); // First element in tags (all tags in DB) that matches name of the tag passed in the form
+                        if(tag !== undefined) tagIds.push(tag._id); // An element with the same name exists
                         else {
+                            // Check user reputation: if < 50, return error message
+                            if(data.posted_by.reputation < 50)
+                                return res.status(403).send({message: "User reputation must be 50 or higher in order to create a new tag."});
+
                             // Create a new tag if not found
-                            const tag = new Tag({name: t, created_by: req.session.userId})
+                            const tag = new Tag({name: t, created_by: currUserId})
                             tag.save()
                             tagIds.push(tag._id)
                         }
@@ -486,12 +506,16 @@ app.post('/postAnswer', (req, res) => {
 // TODO: Constraints with current user's reputation
 // Increment/decrement the vote of a question or answer, which also affects the original poster's reputation
 app.post('/incVote', async(req, res) => {
+    const currUser = await User.findById({_id: req.session.userId}, {reputation: 1})
+    if(currUser.reputation < 50) return res.status(403).send({message: "User reputation must be 50 or higher in order to vote."});
     const post = req.body;
     if(post.qid) await Question.findByIdAndUpdate({_id: post.qid}, {$inc: {votes: 1}})
     else await Answer.findByIdAndUpdate({_id: post.aid}, {$inc: {votes: 1}})
     await User.findByIdAndUpdate({_id: post.postedBy}, {$inc: {reputation: 5}})
 })
 app.post('/decVote', async(req, res) => {
+    const currUser = await User.findById({_id: req.session.userId}, {reputation: 1})
+    if(currUser.reputation < 50) return res.status(403).send({message: "User reputation must be 50 or higher in order to vote."});
     const post = req.body;
     if(post.qid) await Question.findByIdAndUpdate({_id: post.qid}, {$inc: {votes: -1}})
     else await Answer.findByIdAndUpdate({_id: post.aid}, {$inc: {votes: -1}})
@@ -503,6 +527,8 @@ app.post('/incView', async(req, res) => { await Question.findByIdAndUpdate({_id:
 app.post('/postComment', (req, res) => {
     async function postComment() {
         try {
+            const currUser = await User.findById({_id: req.session.userId}, {reputation: 1})
+            if(currUser.reputation < 50) return res.status(403).send({message: "User reputation must be 50 or higher in order to comment."});
             const com = new Comment({
                 text: req.body.text,
                 posted_by: req.session.userId,
