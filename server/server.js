@@ -564,8 +564,21 @@ app.post('/postComment', (req, res) => {
     postComment();
 })
 
-app.post('/deleteUser', (req, res) => {
-    // TODO
+app.post('/deleteUser', async (req, res) => {
+    const userIdToDelete = req.body.uid; // User to be deleted (will be referred to as "user TBD" in the comments)
+    if(userIdToDelete === req.session.userId) return res.status(403).send({message: "You can't delete yourself!"});
+    const questions = await Question.find({posted_by: userIdToDelete}) // All questions made by the user TBD
+    // Deletes all answers and comments associated with each question made by the user TBD
+    questions.map(question => {
+        Answer.deleteMany({_id: {$in: question.answers}})
+        Comment.deleteMany({_id: {$in: question.comments}})
+    })
+    await Question.deleteMany({posted_by: userIdToDelete}) // Deletes the questions themselves
+    const answers = await Answer.find({posted_by: userIdToDelete}) // All answers made by user TBD
+    answers.map(answer => {Comment.deleteMany({_id: {$in: answer.comments}})}) // All comments associated with each answer made by the user TBD
+    await Answer.deleteMany({posted_by: userIdToDelete}); // Deletes the answers themselves
+    await User.deleteOne({_id: userIdToDelete}); // Deletes the user at last
+    res.status(200).send();
 })
 
 /*

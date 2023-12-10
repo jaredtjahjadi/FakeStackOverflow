@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 let userArgs = process.argv.slice(2);
 
 if (userArgs.length < 2) {
-    console.log('ERROR: You need to specify a valid mongodb URL as the first argument');
+    console.log('Usage: node init.js <admin_email> <admin_password>');
     return
 }
 

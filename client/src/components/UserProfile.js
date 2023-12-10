@@ -161,11 +161,12 @@ function Delete({user}) {
             <div className='delete-confirm'>
                 Are you sure you want to delete this user? {''}
                 <span className='delete-yes' onClick={() => {
-                    const deleteUser = async (req, res) => {
-                        await axios.post('http://localhost:8000/deleteUser', user)
-                        alert('User deleted.')
-                    }
-                    deleteUser();
+                    const deleteUser = async () => { await axios.post('http://localhost:8000/deleteUser', user) }
+                    deleteUser().then(() => { alert("User has been deleted.") })
+                    .catch(error => {
+                        alert(error.response.data.message);
+                        setDeleteWarning(!deleteWarning);
+                    });
                 }}>Y</span> / {''}
                 <span className='delete-no' onClick={() => setDeleteWarning(!deleteWarning)}>N</span>
             </div> :
