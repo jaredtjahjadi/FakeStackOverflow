@@ -125,19 +125,18 @@ app.get('/', (req,res) => { res.send("fake_so visited") })
     User Profile
 */
 
-app.get('/userProfile', (req,res) => {
-    User.findById({_id: req.session.userId}).exec()
-        .then(user => {
-            res.send({
-                username: user.username,
-                reputation: user.reputation,
-                timeJoined: user.timeJoined
-            })
-        })
+app.get('/userProfile', async (req, res) => {
+    const user = await User.findById(req.query.uid);
+    res.send({
+        username: user.username,
+        reputation: user.reputation,
+        timeJoined: user.timeJoined,
+        role: user.role
+    })
 })
 
 app.get('/postedQuestions', (req, res) => {
-    Question.find({posted_by: req.session.userId}).exec()
+    Question.find({posted_by: req.query.uid}).exec()
         .then(questions => { res.send(formatQuestions(questions)) })
 })
 
@@ -155,11 +154,14 @@ app.get('/postedQuestions', (req, res) => {
  * 
  * This is the best way I could figure out how to get data of the current user, feel free to change
  * if a better way is found.
+ * 
+ * - 🐻
  */
-app.get('/currUser', (req, res) => {
-    const user = User.find({_id: req.session.userId})
-    user.password = undefined;
+app.get('/currUser', async (req, res) => {
+    const user = await User.findById(req.session.userId)
+    user.passwordHash = undefined;
     res.send({
+        uid: user._id,
         username: user.username,
         reputation: user.reputation,
         role: user.role
@@ -221,7 +223,7 @@ app.get('/tags', (req, res) => {
 
 app.get('/usedTags', async (req, res) => {
     try {
-        const tags = await Tag.find({created_by: req.session.userId})
+        const tags = await Tag.find({created_by: req.query.uid})
         res.send(formatTags(tags))
     } catch(error) { console.error(error) }
 })
@@ -351,6 +353,25 @@ app.get('/userData', (req, res) => {
     getUserData()
 })
 
+app.get('/allUsers', (req, res) => {
+    async function getAllUsers() {
+        try {
+            const tempUsers = await User.find().exec();
+            const users = [];
+            for(let i = 0; i < tempUsers.length; i++) {
+                users[i] = {
+                    uid: tempUsers[i]._id,
+                    username: tempUsers[i].username,
+                    reputation: tempUsers[i].reputation,
+                    role: tempUsers[i].role
+                }
+            }
+            res.send(users);
+        } catch(error) { console.log(error) }
+    }
+    getAllUsers();
+})
+
 app.post('/addQuestion', (req, res) => {
     async function addQuestion() {
         const currUserId = req.session.userId;
@@ -443,7 +464,7 @@ app.post('/deleteAnswer', (req, res) => {
 app.get('/answeredQuestions', (req, res) => {
     async function getAnsweredQuestions() {
         try {
-            let answers = await Answer.find({posted_by: req.session.userId})
+            let answers = await Answer.find({posted_by: req.query.uid})
             let questions = await Question.find({answers: {$in: answers}}).sort({ask_date_time: -1})
 
             res.send(formatQuestions(questions))
@@ -503,7 +524,6 @@ app.post('/postAnswer', (req, res) => {
     postAnswer();
 })
 
-// TODO: Constraints with current user's reputation
 // Increment/decrement the vote of a question or answer, which also affects the original poster's reputation
 app.post('/incVote', async(req, res) => {
     const currUser = await User.findById({_id: req.session.userId}, {reputation: 1})
@@ -542,6 +562,10 @@ app.post('/postComment', (req, res) => {
         } catch(error) { console.log(error) }
     }
     postComment();
+})
+
+app.post('/deleteUser', (req, res) => {
+    // TODO
 })
 
 /*

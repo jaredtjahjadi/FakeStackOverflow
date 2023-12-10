@@ -246,6 +246,17 @@ body { font-family: Arial; }
     margin-bottom: 1%;
 }
 
+.user-list-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 1% 0%;
+}
+
+.user-list-item-name, .delete-user, .delete-yes, .delete-no { cursor: pointer; }
+.user-list-item-name:hover { color: lightblue; }
+.delete-user:hover, .delete-no { color: red; }
+.delete-yes { color: green; }
+
 .tags-container
 {
     display: flex;

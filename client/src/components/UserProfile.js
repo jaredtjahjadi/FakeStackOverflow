@@ -1,51 +1,53 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
+import { QuestionsInfo } from './HomePage';
 import axios from 'axios'
 import * as Constants from '../constants'
 import TagCard from './TagCard';
 
 export function UserProfile({setCurrPage, setDisplayedPost}) {
-    const [userInfo, setUserInfo] = useState(0);
+    const questionsInfo = useContext(QuestionsInfo);
+    const currUserProfile = questionsInfo.currUserProfile;
+    const setUserProfile = questionsInfo.setUserProfile;
+    const [userInfo, setUserInfo] = useState({});
 
     useEffect(() => {
-
         const getUserInfo = async () => {
-            const userInfo = await axios.get('http://localhost:8000/userProfile')
+            const userInfo = await axios.get('http://localhost:8000/userProfile', { params: currUserProfile })
             setUserInfo(userInfo.data)
         }
         getUserInfo()
-    }, [])
+    }, [currUserProfile])
 
     return (
         <div id='user-profile'>
             <h2 className="profile-header">Profile Info</h2>
             <div id="profile-card">
-                <h3 id='username'>
-                    {userInfo.username}
-                </h3>
+                <h3 id='username'>{userInfo.username}</h3>
                 <p>
                     Reputation: {userInfo.reputation}
                     <br/>
                     {MemberSinceTime(userInfo.timeJoined)}
                 </p>
             </div>
-            <PostedQuestions setCurrPage={setCurrPage} setDisplayedPost={setDisplayedPost}/>
-            <AnsweredQuestions setCurrPage={setCurrPage} setDisplayedPost={setDisplayedPost}/>
-            <UsedTags setCurrPage={setCurrPage} />
+            <PostedQuestions currUserProfile={currUserProfile} setCurrPage={setCurrPage} setDisplayedPost={setDisplayedPost}/>
+            <AnsweredQuestions currUserProfile={currUserProfile} setCurrPage={setCurrPage} setDisplayedPost={setDisplayedPost}/>
+            <UsedTags currUserProfile={currUserProfile} setCurrPage={setCurrPage} />
+            {userInfo.role === 'ADMIN' && <UserList setUserProfile={setUserProfile} />}
         </div>
     )
 }
 
-export function PostedQuestions({setCurrPage, setDisplayedPost}) {
+export function PostedQuestions({currUserProfile, setCurrPage, setDisplayedPost}) {
     const [postedQuestions, setPostedQuestions] = useState([])
 
     useEffect(() => {
         const getPostedQuestions = async () => {
-            const postedQuestions = await axios.get('http://localhost:8000/postedQuestions')
+            const postedQuestions = await axios.get('http://localhost:8000/postedQuestions', { params: currUserProfile })
             setPostedQuestions(postedQuestions.data)
         }
 
         getPostedQuestions()
-    }, [])
+    }, [currUserProfile])
 
     return (
         <div>
@@ -69,23 +71,20 @@ function PostedQuestion({question, setCurrPage, setDisplayedPost}) {
     )
 }
 
-function AnsweredQuestions({setCurrPage, setDisplayedPost}) {
+function AnsweredQuestions({currUserProfile, setCurrPage, setDisplayedPost}) {
     const [answeredQuestions, setAnsweredQuestions] = useState([])
 
     useEffect(() => {
         const getAnsweredQuestions = async () => {
-            const answeredQuestions = await axios.get('http://localhost:8000/answeredQuestions')
+            const answeredQuestions = await axios.get('http://localhost:8000/answeredQuestions', {params: currUserProfile})
             setAnsweredQuestions(answeredQuestions.data)
         }
-
         getAnsweredQuestions()
-    }, [])
+    }, [currUserProfile])
 
     return (
         <>
-            <h3 className='profile-header'>
-                Answered Questions
-            </h3>
+            <h3 className='profile-header'>Answered Questions</h3>
             {answeredQuestions.length ? answeredQuestions.map(q => <AnsweredQuestion key={q.qid} question={q} 
                 setCurrPage={setCurrPage} setDisplayedPost={setDisplayedPost}/>) : 'No Questions'}
         </>
@@ -103,17 +102,17 @@ function AnsweredQuestion({question, setCurrPage, setDisplayedPost}) {
     )
 }
 
-function UsedTags() {
+function UsedTags({currUserProfile}) {
     const [usedTags, setUsedTags] = useState([])
 
     useEffect(() => {
         const getUsedTags = async () => {
-            const res = await axios.get('http://localhost:8000/usedTags')
+            const res = await axios.get('http://localhost:8000/usedTags', {params: currUserProfile})
             setUsedTags(res.data)
         }
 
         getUsedTags()
-    }, [])
+    }, [currUserProfile])
 
     return (
         <>
@@ -129,8 +128,53 @@ function UsedTags() {
     )
 }
 
-function MemberSinceTime(timeJoined) {
+function UserList({setUserProfile}) {
+    const [userList, setUserList] = useState([]);
+    useEffect(() => {
+        const getAllUsers = async () => {
+            await axios.get('http://localhost:8000/allUsers')
+            .then(res => { setUserList(res.data) })
+        }
+        getAllUsers();
+    }, [])
 
+    return (
+        <div>
+            <h3 className='profile-header'>User List</h3>
+            {userList.length ?
+                <div>
+                    {userList.map(user => <div key={user.uid} className='user-list-item'>
+                        <div className='user-list-item-name' onClick={() => setUserProfile(user)}>{user.username}</div>
+                        <Delete user={user} />
+                    </div>)}
+                </div> :
+            <div>No Users</div>}
+        </div>
+    )
+}
+
+function Delete({user}) {
+    const [deleteWarning, setDeleteWarning] = useState(false);
+    return (
+        <div>
+            {deleteWarning ?
+            <div className='delete-confirm'>
+                Are you sure you want to delete this user? {''}
+                <span className='delete-yes' onClick={() => {
+                    const deleteUser = async (req, res) => {
+                        await axios.post('http://localhost:8000/deleteUser', user)
+                        alert('User deleted.')
+                    }
+                    deleteUser();
+                }}>Y</span> / {''}
+                <span className='delete-no' onClick={() => setDeleteWarning(!deleteWarning)}>N</span>
+            </div> :
+            <div className='delete-user' onClick={() => setDeleteWarning(!deleteWarning)}>Delete</div>}
+        </div>
+    )
+}
+
+function MemberSinceTime(timeJoined) {
     let formattedTime = "Member for "
     let time_asked = new Date(timeJoined)
     let time_now = new Date();
@@ -144,5 +188,5 @@ function MemberSinceTime(timeJoined) {
     if(time_ago > days_ago) return formattedTime + Math.round(time_ago/days_ago) + " day" + ((Math.round(time_ago/days_ago) > 1) ? "s" : "");
     if(time_ago > hours_ago) return formattedTime + Math.round(time_ago/hours_ago) + " hour" + ((Math.round(time_ago/hours_ago) > 1) ? "s" : "");
     if(time_ago > minutes_ago) return formattedTime + Math.round(time_ago/minutes_ago) + " minute" + ((Math.round(time_ago/minutes_ago) > 1) ? "s" : "");
-    else return formattedTime + Math.round(time_ago/(1000)) + " second" +  + ((Math.round(time_ago/1000) > 1) ? "s" : "");
+    else return formattedTime + Math.round(time_ago/(1000)) + " second" + ((Math.round(time_ago/1000) > 1) ? "s" : "s");
 }

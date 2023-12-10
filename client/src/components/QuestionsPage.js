@@ -217,11 +217,11 @@ export function DateMetadata(props) {
         str = " commented "
     }
     const time_ago = time_now - time_posted;
-    const num_secs = Math.round((time_now - time_posted)/(1000));
+    const num_secs = Math.round((time_ago)/(1000));
     const minutes_ago = 1000 * 60;
-    const num_mins = Math.round((time_now - time_posted)/(1000 * 60));
+    const num_mins = Math.round((time_ago)/(1000 * 60));
     const hours_ago = minutes_ago * 60;
-    const num_hours = Math.round((time_now - time_posted)/(1000 * 60 * 60));
+    const num_hours = Math.round((time_ago)/(1000 * 60 * 60));
     const days_ago = hours_ago * 24;
     const years_ago = days_ago * 365;
     let post_time = "";
