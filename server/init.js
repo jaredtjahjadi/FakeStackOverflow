@@ -31,7 +31,7 @@ async function userCreate(username, email, password, role, reputation) {
     username: username,
     email: email,
     passwordHash: passwordHash,
-    role: 'USER',
+    role: 'STANDARD_USER',
     reputation: 0,
     timeJoined: new Date()
   }

@@ -43,8 +43,7 @@ export default function FakeStackOverflow() {
         .then(() => setIsAuthenticated(true))
         .catch(error => {
           if(!error.response)
-            console.log("ERROR")
-          console.log(error)
+            alert("Request failed. Try again later.")
         })
     }
 

@@ -79,10 +79,27 @@ export function Menu() {
     useEffect(() => {
         const getCurrUser = async () => {
             await axios.get('http://localhost:8000/currUser')
-            .then(res => { setCurrUser(res.data) })
+            .then(res => { 
+                if(res.data.guest)
+                    setIsAuthenticated(false)
+                else
+                    setCurrUser(res.data) 
+            })
+            .catch(error => {
+                if(!error.response) {
+                    alert("Request failed. Try again later.")
+                    setIsAuthenticated(null)
+                    setCurrPage(Constants.SPLASH_PAGE)
+                }
+                else {
+                    alert('User no longer exists.')
+                    setIsAuthenticated(null)
+                    setCurrPage(Constants.SPLASH_PAGE)
+                }
+            })
         }
         getCurrUser();
-    }, [])
+    }, [setIsAuthenticated, setCurrPage])
 
     // Btw very trivial change but tabIndex makes it so that buttons, links, etc. are accessible when using the Tab key
     return (
@@ -118,8 +135,13 @@ export function Menu() {
             }  
             <div
                 onClick={async () => {
-                    await axios.post('http://localhost:8000/logout')
-                    setIsAuthenticated(null)
+                    try{
+                        await axios.post('http://localhost:8000/logout')
+                        setIsAuthenticated(null)
+                    }
+                    catch(error) {
+                        alert('Logout failed, try again later.')
+                    }
                 }}
                 tabIndex="0"
             >
@@ -132,7 +154,6 @@ export function Menu() {
 // Can be exported to display on different pages depending on the page body.
 export function AskQuestion() {
     const questionsInfo = useContext(QuestionsInfo);
-    // const isAuthenticated = questionsInfo.isAuthenticated
     const setCurrPage = questionsInfo.setCurrPage;
     return (
         <div id="ask-question-container">
