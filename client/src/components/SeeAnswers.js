@@ -141,7 +141,8 @@ function Answer({answer, setCurrPage, setDisplayedPost, isUsers, setAnswers, ans
                 <DateMetadata answer={answer} user={username} />
             </div>
 
-            {questionsInfo.currPage !== Constants.SEE_USER_ANSWERS_PAGE && isAuthenticated && <Comments answer={answer} />}
+            {/* Removeed the isAuthenticated check from the below line (guests should be allowed to see comments as per HW doc) */}
+            {questionsInfo.currPage !== Constants.SEE_USER_ANSWERS_PAGE && <Comments answer={answer} isAuthenticated={isAuthenticated} />}
             {questionsInfo.currPage === Constants.SEE_USER_ANSWERS_PAGE && isUsers &&
                 <button className='modify-button' onClick={() => {
                     setCurrPage(Constants.MODIFY_ANSWER_PAGE)

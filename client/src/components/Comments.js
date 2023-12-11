@@ -27,12 +27,13 @@ export default function Comments(props) {
                 let res;
                 if(question) res = await axios.get(`http://localhost:8000/questions/${question.qid}/comments`);
                 if(answer) res = await axios.get(`http://localhost:8000/answers/${answer.aid}/comments`);
-                setComments(res.data.reverse());
+                setComments(res.data.reverse()); // Newest first
             } catch(error) { console.log(error) }
         }
         getComments();
     }, [question, answer])
 
+    // Comments rerenders only when the comments varaible changes
     useEffect(() => { setDisplayedComments(comments.slice(commentChunkInd * 3, (commentChunkInd * 3) + 3)) }, [comments])
 
     const handleSubmit = async (event) => {
@@ -85,14 +86,15 @@ export default function Comments(props) {
     return (
         <div className="comment-container">
             <div className="comments">{currDisplayedComments.map((c) => <Comment key={c.cid} comment={c} />)}</div>
-            {insertComment
+            
+            {props.isAuthenicated && (insertComment
                 ? <form id='post-comment' onSubmit={handleSubmit}>
                     <input type='text' name='commenttext' />
                     {formErrors.commentText && <ErrorMessage errMsg={formErrors.commentText} />}
                     <input type='submit' value="Post Comment" />
                 </form>
                 : <div id="add-comment-container"><button id="add-comment" type="button" onClick={() => {showInsertComment(!insertComment)}}>Add Comment</button></div>
-            }
+            )}
             {comments.length > 3 && <CommentNav coms={comments} setDisplayedComments={setDisplayedComments} />}
         </div>
     )

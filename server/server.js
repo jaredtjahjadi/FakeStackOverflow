@@ -28,7 +28,7 @@ app.use(cors({
 }))
 app.use(express.json())
 app.use(session({
-    secret: `howtf`, // felt
+    secret: `howtf`,
     cookie: {},
     resave: false,
     saveUninitialized: false,
@@ -152,12 +152,13 @@ app.get('/postedQuestions', (req, res) => {
  * (e.g., admins can delete other user's posts).
  * The password is set to undefined in order to maintain security.
  * 
- * This is the best way I could figure out how to get data of the current user, feel free to change
+ * This is the best way I could figure out how to get data of the current user, fefree to change
  * if a better way is found.
  * 
  * - 🐻
  */
 app.get('/currUser', async (req, res) => {
+    if(req.session.guest) return;
     const user = await User.findById(req.session.userId)
     user.passwordHash = undefined;
     res.send({
@@ -526,14 +527,24 @@ app.post('/postAnswer', (req, res) => {
 
 // Increment/decrement the vote of a question or answer, which also affects the original poster's reputation
 app.post('/incVote', async(req, res) => {
+    // User cannot vote for themself
+    if(req.session.userId === req.body.postedBy) return res.status(403).send({message: "You can't vote for yourself!"});
+
+    // User reputation must be >=50 to vote
     const currUser = await User.findById({_id: req.session.userId}, {reputation: 1})
     if(currUser.reputation < 50) return res.status(403).send({message: "User reputation must be 50 or higher in order to vote."});
+
+    // 1 vote per user per question/answer/comment constraint
+    // TODO
+
     const post = req.body;
     if(post.qid) await Question.findByIdAndUpdate({_id: post.qid}, {$inc: {votes: 1}})
     else await Answer.findByIdAndUpdate({_id: post.aid}, {$inc: {votes: 1}})
     await User.findByIdAndUpdate({_id: post.postedBy}, {$inc: {reputation: 5}})
 })
 app.post('/decVote', async(req, res) => {
+    // User cannot vote for themself
+    if(req.session.userId === req.body.postedBy) return res.status(403).send({message: "You can't vote for yourself!"});
     const currUser = await User.findById({_id: req.session.userId}, {reputation: 1})
     if(currUser.reputation < 50) return res.status(403).send({message: "User reputation must be 50 or higher in order to vote."});
     const post = req.body;
@@ -541,7 +552,11 @@ app.post('/decVote', async(req, res) => {
     else await Answer.findByIdAndUpdate({_id: post.aid}, {$inc: {votes: -1}})
     await User.findByIdAndUpdate({_id: post.postedBy}, {$inc: {reputation: -10}})
 })
-app.post('/incCVote', async(req, res) => { await Comment.findByIdAndUpdate({_id: req.body.cid}, {$inc: {votes: 1}}) })
+app.post('/incCVote', async(req, res) => {
+    // User cannot vote for themself
+    if(req.session.userId === req.body.postedBy) return res.status(403).send({message: "You can't vote for yourself!"});
+    await Comment.findByIdAndUpdate({_id: req.body.cid}, {$inc: {votes: 1}})
+})
 app.post('/incView', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: {views: 1}}) })
 
 app.post('/postComment', (req, res) => {

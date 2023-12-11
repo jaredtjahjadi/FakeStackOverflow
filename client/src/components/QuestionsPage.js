@@ -189,7 +189,7 @@ function Question({question}) {
                 </div>
                 <DateMetadata question={question} user={username} />
             </div>
-            {isAuthenticated && <Comments question={question} />}
+            <Comments question={question} isAuthenticated={isAuthenticated} />
         </div>
     )
 }
