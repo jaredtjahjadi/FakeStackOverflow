@@ -101,12 +101,14 @@ export function Menu() {
         getCurrUser();
     }, [setIsAuthenticated, setCurrPage])
 
+    // Btw very trivial change but tabIndex makes it so that buttons, links, etc. are accessible when using the Tab key
     return (
         <div id="menu" className="column">
             <div 
                 id="questions-link" 
                 className={currPage === Constants.QUESTIONS_PAGE ? "active" : undefined}
                 onClick={() => setCurrPage(Constants.QUESTIONS_PAGE)}
+                tabIndex="0"
             >
                 Questions
             </div>
@@ -115,19 +117,21 @@ export function Menu() {
                 id="tags-link"
                 className={currPage === Constants.TAGS_PAGE ? "active" : undefined}
                 onClick={() => setCurrPage(Constants.TAGS_PAGE)}
+                tabIndex="0"
             >
                 Tags
             </div>
             {isAuthenticated &&
-                <div
+            <div
                 className={currPage === Constants.USER_PROFILE ? "active" : undefined}
-                    onClick={() => {
-                        setUserProfile(currUser)
-                        setCurrPage(Constants.USER_PROFILE)
-                    }}
-                >
-                    User Profile
-                </div>
+                onClick={() => {
+                    setUserProfile(currUser)
+                    setCurrPage(Constants.USER_PROFILE)
+                }}
+                tabIndex="0"
+            >
+                User Profile
+            </div>
             }  
             <div
                 onClick={async () => {
@@ -139,6 +143,7 @@ export function Menu() {
                         alert('Logout failed, try again later.')
                     }
                 }}
+                tabIndex="0"
             >
                 Logout
             </div>

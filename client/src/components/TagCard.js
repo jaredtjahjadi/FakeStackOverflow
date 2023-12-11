@@ -31,7 +31,7 @@ export default function TagCard(props) {
         <div className="tag-card">
             {isEditing ? (<input id="tag-edit" value={tagName} onChange={(event) => setTagName(event.target.value)}/>)
             : (
-                <button className="tag-link" onClick={() => {
+                <button tabIndex='0' className="tag-link" onClick={() => {
                     setDisplayedQuestions(questions);
                     setNumQuestions(questions.length);
                     setCurrFilter(Constants.TAGS_FILTER);
@@ -43,7 +43,7 @@ export default function TagCard(props) {
             }
             <div className='tag-card-num-question'>
                 {numQuestions} question{(numQuestions !== 1) ? "s" : ""}
-                {isUsers && numQuestions === 0 && 
+                {isUsers && numQuestions !== 0 && 
                 <>
                     <br/>
                     {isEditing ? (
@@ -86,11 +86,14 @@ export default function TagCard(props) {
                         </button>
                     ) : (
                         <>
-                            <button onClick={() => setIsEditing(true)}>Edit</button>
-                            <button onClick={async () => {
+                            <button tabIndex='0' onClick={() => setIsEditing(true)}>Edit</button>
+                            <button tabIndex='0' onClick={async () => {
                                 await axios.post('http://localhost:8000/deleteTag', tag)
-                                setUsedTags(usedTags.filter(t => t.tid !== tag.tid))
-                                console.log(usedTags)
+                                .then(() => {setUsedTags(usedTags.filter(t => t.tid !== tag.tid))})
+                                .catch((error) => {
+                                    console.log(error);
+                                    alert(error.response.data.message);
+                                })
                             }}>
                                 Delete
                             </button>

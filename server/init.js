@@ -95,14 +95,17 @@ const populate = async () => {
   let u7 = await userCreate('saltyPeter', 'saltypeter@gmail.com', '123', false, false)
   let c1 = await commentCreate('This is a comment :)', u1)
   let c2 = await commentCreate('Good post! 1 Reddit Gold for you.', u7)
+  let c3 = await commentCreate('I\'m sorry, I really don\'t know what you mean by this...', u4)
+  let c4 = await commentCreate('Just google it lol', u2)
+  let c5 = await commentCreate('Thank you all for the feedback!', u6)
   let t1 = await tagCreate('react', u6);
   let t2 = await tagCreate('javascript', u7);
-  let t3 = await tagCreate('android-studio', u7);
-  let t4 = await tagCreate('shared-preferences', u7);
+  let t3 = await tagCreate('android', u7);
+  let t4 = await tagCreate('preferences', u7);
   let a1 = await answerCreate('React Router is mostly a wrapper around the history library. history handles interaction with the browser\'s window.\nhistory for you with its browser and hash histories. It also provides a memory history which is useful for environments that don\'t have a global history. This is particularly useful in mobile app development (react-native) and unit testing with Node.',
     u1, false);
   let a2 = await answerCreate('On my end, I like to have a single history object that I can carry even outside components. I like to have a single history.js file that I import on demand, and just manipulate it. You just have to change BrowserRouter to Router, and specify the history prop. This doesn\'t change anything for you, except that you have your own history object that you can manipulate as you want. You need to install history, the library used by react-router.',
-    u2, false);
+    u2, false, [c5]);
   let a3 = await answerCreate('Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background.',
     u3, false);
   let a4 = await answerCreate('YourPreference yourPrefrence = YourPreference.getInstance(context); yourPreference.saveData(YOUR_KEY,YOUR_VALUE);',
@@ -110,7 +113,7 @@ const populate = async () => {
   let a5 = await answerCreate('I just found all the above examples just too confusing, so I wrote my own.',
     u5, false);
   await questionCreate('Programmatically navigate using React router', 'Need help with React router.', 'the alert shows the proper index for the li clicked, and when I alert the variable within the last function I\'m calling, moveToNextImage(stepClicked), the same value shows but the animation isn\'t happening. This works many other ways, but I\'m trying to pass the index value of the list item clicked to use for the math to calculate.',
-    [t1, t2], [a1, a2], u6, false, false);
+    [t1, t2], [a1, a2], u6, false, false, [c3, c4]);
   await questionCreate('android studio save string shared preference, start activity and load the saved string', 'How do I use strings with android studio?', 'I am using bottom navigation view but am using custom navigation, so my fragments are not recreated every time i switch to a different view. I just hide/show my fragments depending on the icon selected. The problem i am facing is that whenever a config change happens (dark/light theme), my app crashes. I have 2 fragments in this activity and the below code is what i am using to refrain them from being recreated.',
     [t3, t4, t2], [a3, a4, a5], u7, false, 121, [c1, c2]);
   if(db) db.close();

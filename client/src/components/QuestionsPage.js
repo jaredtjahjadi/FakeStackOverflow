@@ -35,7 +35,7 @@ export default function QuestionsPage() {
 function AskQuestion() {
     const questionsInfo = useContext(QuestionsInfo);
     const setCurrPage = questionsInfo.setCurrPage;
-    return <div id="ask-question-container"><button id="ask-question" type="button" onClick={() => setCurrPage(Constants.POST_QUESTION_PAGE)}>Ask Question</button></div>
+    return <div id="ask-question-container"><button tabIndex="0" id="ask-question" type="button" onClick={() => setCurrPage(Constants.POST_QUESTION_PAGE)}>Ask Question</button></div>
 }
 
 function Filters() {
@@ -58,7 +58,7 @@ function Filter(props) {
     const setCurrFilter = questionsInfo.setCurrFilter;
     const setTypeResults = questionsInfo.setTypeResults;
     return (
-        <td id={props.filterName} onClick={() => {
+        <td tabIndex="0" id={props.filterName} onClick={() => {
             questionChunkInd = 0;
             setCurrFilter(props.filter);
             setTypeResults("All Questions");
@@ -85,11 +85,17 @@ function Question({question}) {
     const setCurrPage = questionsInfo.setCurrPage;
     const setDisplayedPost = questionsInfo.setDisplayedPost;
     const isAuthenticated = questionsInfo.isAuthenticated
+    const [numAnswers, setNumAnswers] = useState(0);
     const setIsAuthenticated = questionsInfo.setIsAuthenticated
+
     const [tags, setTags] = useState([])
     const [votes, setVotes] = useState(question.votes)
     const [username, setUsername] = useState('')
-    const [currUserRep, setCurrUserRep] = useState(0)
+    const [currUserRep, setCurrUserRep] = useState(0);
+    const [upvotedPosts, setUpvotedPosts] = useState([]);
+    const [downvotedPosts, setDownvotedPosts] = useState([]);
+    const [isUpvoted, setIsUpvoted] = useState(false);
+    const [isDownvoted, setIsDownvoted] = useState(false);
 
     let qid = question.qid;
     let currTitleTagsContainer = qid + "-title-tags-container";
@@ -123,13 +129,24 @@ function Question({question}) {
     useEffect(() => {
         const getUserRep = async () => {
             await axios.get('http://localhost:8000/currUser')
-            .then(res => { 
-                if(!res.data.guest)
-                    setCurrUserRep(res.data.reputation)
+            .then(res => {
+                setCurrUserRep(res.data.reputation);
+                setUpvotedPosts(res.data.upvoted_posts)
+                setDownvotedPosts(res.data.downvoted_posts)
             })
         }
         getUserRep();
     }, [])
+
+    useEffect(() => {
+        const getNumAnswers = async () => {
+            await axios.get('http://localhost:8000/questionData', {params: question})
+            .then(res => {
+                setNumAnswers(res.data.answers.length)
+            })
+        }
+        getNumAnswers();
+    }, [question])
 
     return (
         <div className="question">
@@ -142,18 +159,25 @@ function Question({question}) {
                         }
                         const incVote = async() => {
                             const q = question;
-                            if(currUserRep > 50) {
+                            if(currUserRep > 50 && !upvotedPosts.includes(q.qid) && !isUpvoted) {
                                 q.votes++;
                                 setVotes(q.votes);
                             }
-                            try { await axios.post('http://localhost:8000/incVote', q) }
+                            try {
+                                setIsUpvoted(true);
+                                if(isDownvoted) {
+                                    q.votes++;
+                                    setIsDownvoted(false);
+                                }
+                                await axios.post('http://localhost:8000/incVote', q)
+                            }
                             catch(error) {
                                 console.log(error)
                                 alert(error.response.data.message)
                             }
                         }
                         incVote();
-                    }}>🡅</p>
+                    }}><span tabIndex='0'>🡅</span></p>
                     {votes}
                     <p className="downvote" onClick={() => {
                         if(!isAuthenticated) {
@@ -162,27 +186,34 @@ function Question({question}) {
                         }
                         const decVote = async() => {
                             const q = question;
-                            if(currUserRep > 50) {
+                            if(currUserRep > 50 && !downvotedPosts.includes(q.qid) && !isDownvoted) {
                                 q.votes--;
                                 setVotes(q.votes);
                             }
-                            try { await axios.post('http://localhost:8000/decVote', q) }
+                            try {
+                                setIsDownvoted(true);
+                                if(isUpvoted) {
+                                    q.votes--;
+                                    setIsUpvoted(false);
+                                }
+                                await axios.post('http://localhost:8000/decVote', q)
+                            }
                             catch(error) {
                                 console.log(error)
                                 alert(error.response.data.message)
                             }
                         }
                         decVote();
-                    }}>🡇</p>
+                    }}><span tabIndex='0'>🡇</span></p>
                 </div>
                 <p className='interaction-stats'>
-                    {question.ansIds.length} answers
+                    {numAnswers} answers
                     <br />
                     {question.views} views
                 </p>
 
                 <div id={currTitleTagsContainer} className='title-tags-container'>
-                    <div className="title" onClick={() => {
+                    <div className="title" tabIndex="0" onClick={() => {
                         const incrementView = async() => {
                             const q = question;
                             q.views++;
@@ -200,7 +231,7 @@ function Question({question}) {
                 </div>
                 <DateMetadata question={question} user={username} />
             </div>
-            {isAuthenticated && <Comments question={question} />}
+            <Comments question={question} />
         </div>
     )
 }
@@ -266,7 +297,7 @@ function Button(props) {
     const setDisplayedQuestions = props.setDisplayedQuestions;
     const questionChunks = props.questionChunks;
     return (
-        <div id={props.id} onClick={() => {
+        <div tabIndex='0' id={props.id} onClick={() => {
             if(props.id === "prev-button" && questionChunkInd > 0) questionChunkInd--;
             if(props.id === "next-button" && questionChunkInd < questionChunks.length - 1) questionChunkInd++;
             setDisplayedQuestions(questionChunks[questionChunkInd]);

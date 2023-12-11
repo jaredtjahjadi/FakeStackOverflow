@@ -11,7 +11,6 @@ import axios from 'axios'
 
 export default function WelcomePage({setIsAuthenticated}) {
     const [currPage, setCurrPage] = useState(Constants.SPLASH_PAGE)
-
     let content;
 
     switch(currPage) {
@@ -43,16 +42,11 @@ function SplashPage({setCurrPage, setIsAuthenticated}) {
     return (
         <>
             <div id="welcome-options">
-                <button className="welcome-button" onClick={() => setCurrPage(Constants.LOGIN_PAGE)}>Login</button>
-                <button className="welcome-button" onClick={() => setCurrPage(Constants.REGISTER_PAGE)}>Register</button>
-                <button className="welcome-button" onClick={async () => {
-                    try {
-                        await axios.post('http://localhost:8000/guest')
-                        setIsAuthenticated(false)
-                    }
-                    catch(error) {
-                        alert("Request failed, please try again later.")
-                    }
+                <button tabIndex='0' className="welcome-button" onClick={() => setCurrPage(Constants.LOGIN_PAGE)}>Login</button>
+                <button tabIndex='0' className="welcome-button" onClick={() => setCurrPage(Constants.REGISTER_PAGE)}>Register</button>
+                <button tabIndex='0' className="welcome-button" onClick={async () => {
+                    await axios.post('http://localhost:8000/guest')
+                    setIsAuthenticated(false)
                 }}>
                     Continue as Guest
                 </button>
@@ -62,6 +56,7 @@ function SplashPage({setCurrPage, setIsAuthenticated}) {
 }
 
 function Login({setCurrPage, setIsAuthenticated}) {
+    const notRegistered = "The given email is not registered with a user.";
     const [email, setEmail] = useState("")
     const [emailError, setEmailError] = useState("")
     const [password, setPassword] = useState("")
@@ -85,13 +80,14 @@ function Login({setCurrPage, setIsAuthenticated}) {
             })
             // Display message if form field is incorrect
             .catch(error => {
-                if(!error.response)
-                    alert("Request failed, please try again later.")
-
-                else {
-                    const msg = error.response.data.message
-                    if(msg === "The given email is not registered with a user.") setEmailError(msg);
-                    else if(msg === "The password is incorrect.") setPasswordError(msg);
+                const msg = error.response.data.message
+                if(msg === notRegistered || msg === "Email field required.") {
+                    setPasswordError('')
+                    setEmailError(msg);
+                }
+                else if(msg === "The password is incorrect." || msg === "Password field required.") {
+                    setPasswordError(msg);
+                    setEmailError('')
                 }
             })
     }
@@ -196,8 +192,8 @@ function Register({setCurrPage}) {
             <WelcomePageForm idName={'password'} text={"Password"} setField={setPassword} error={passwordError} /><br />
             <WelcomePageForm idName={"passwordverification"} text={"Verify Password"} setField={setPasswordVerification} error={passwordVerifError} /><br />
             <div>
-                <button className="welcome-button" onClick={() => setCurrPage(Constants.SPLASH_PAGE)}>Back</button>
-                <button className="welcome-button">Sign Up</button>
+                <button tabIndex='0' className="welcome-button" onClick={() => setCurrPage(Constants.SPLASH_PAGE)}>Back</button>
+                <button tabIndex='0' className="welcome-button">Sign Up</button>
             </div>
         </form>
     )

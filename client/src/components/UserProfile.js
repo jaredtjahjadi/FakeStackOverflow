@@ -73,7 +73,7 @@ export function PostedQuestions({currUserProfile, setCurrPage, setDisplayedPost}
 
 function PostedQuestion({question, setCurrPage, setDisplayedPost}) {
     return (
-        <div className='user-profile-question-title' onClick={() =>{
+        <div tabIndex='0' className='user-profile-question-title' onClick={() =>{
             setCurrPage(Constants.MODIFY_QUESTION_PAGE)
             setDisplayedPost(question)
         }}>
@@ -104,7 +104,7 @@ function AnsweredQuestions({currUserProfile, setCurrPage, setDisplayedPost}) {
 
 function AnsweredQuestion({question, setCurrPage, setDisplayedPost}) {
     return (
-        <div className='user-profile-question-title' onClick={() =>{
+        <div tabIndex='0' className='user-profile-question-title' onClick={() =>{
             setCurrPage(Constants.SEE_USER_ANSWERS_PAGE)
             setDisplayedPost(question)
         }}>

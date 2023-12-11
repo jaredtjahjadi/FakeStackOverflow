@@ -29,8 +29,6 @@ export default function PostQuestionPage() {
         const getTags = async () => {
             await axios.get('http://localhost:8000/tags', {params: currDisplayedPost.tagIds})
             .then(res => {
-                console.log(res)
-                console.log(currDisplayedPost)
                 let tagsInput = ""
                 res.data.map(tag => tagsInput += tag.name + " ")
                 setQuestionTags(tagsInput)

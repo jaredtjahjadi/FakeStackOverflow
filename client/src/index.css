@@ -211,9 +211,9 @@ body { font-family: Arial; }
     margin: 0;
     text-align: center;
 }
-.upvote, .downvote { cursor: pointer; }
-.upvote:hover { color: blue; }
-.downvote:hover, #mandatory-fields, .error-message { color: red; }
+.upvote > span, .downvote > span { cursor: pointer; }
+.upvote > span:hover { color: blue; }
+.downvote > span:hover, #mandatory-fields, .error-message { color: red; }
 
 .interaction-stats
 {

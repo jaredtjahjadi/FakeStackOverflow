@@ -4,7 +4,7 @@ import { ErrorMessage } from "./PostQuestionPage";
 import { Text } from "./SeeAnswers";
 import * as Constants from '../constants';
 import axios from "axios";
-import {QuestionsInfo} from './HomePage';
+import { QuestionsInfo } from "./HomePage";
 
 let commentChunkInd = 0;
 
@@ -23,6 +23,8 @@ export default function Comments(props) {
     const [currDisplayedComments, setDisplayedComments] = useState([]);
     const [insertComment, showInsertComment] = useState(false);
     const [formErrors, setFormErrors] = useState({});
+    const [currUserRep, setCurrUserRep] = useState(0);
+    const [upvotedPosts, setUpvotedPosts] = useState([]);
 
     // Fetch comments for a given question or answer
     useEffect(() => {
@@ -46,7 +48,19 @@ export default function Comments(props) {
         getComments();
     }, [question, answer, setCurrPage, setIsAuthenticated])
 
-    useEffect(() => { setDisplayedComments(comments.slice(commentChunkInd * 3, (commentChunkInd * 3) + 3)) }, [comments])
+    // Comments rerenders only when the comments varaible changes
+    useEffect(() => {setDisplayedComments(comments.slice(commentChunkInd * 3, (commentChunkInd * 3) + 3))}, [comments])
+
+    useEffect(() => {
+        const getUserData = async () => {
+            await axios.get('http://localhost:8000/currUser')
+            .then(res => {
+                setCurrUserRep(res.data.reputation)
+                setUpvotedPosts(res.data.upvoted_posts)
+            })
+        }
+        getUserData();
+    }, [])
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -98,23 +112,35 @@ export default function Comments(props) {
 
     return (
         <div className="comment-container">
-            <div className="comments">{currDisplayedComments.map((c) => <Comment key={c.cid} comment={c} />)}</div>
+            <div className="comments">{currDisplayedComments.map((c) => <Comment key={c.cid} comment={c} upvotedPosts={upvotedPosts} isAuthenticated={isAuthenticated} />)}</div>
+            
             {insertComment
                 ? <form id='post-comment' onSubmit={handleSubmit}>
                     <input type='text' name='commenttext' />
                     {formErrors.commentText && <ErrorMessage errMsg={formErrors.commentText} />}
                     <input type='submit' value="Post Comment" />
                 </form>
-                : <div id="add-comment-container"><button id="add-comment" type="button" onClick={() => {showInsertComment(!insertComment)}}>Add Comment</button></div>
+                : <div id="add-comment-container"><button id="add-comment" type="button" onClick={() => {
+                    if(!isAuthenticated) {
+                        alert('Guest users are not permitted to comment. Please register.');
+                        return;
+                    }
+                    else if(currUserRep < 50) {
+                        alert('User reputation must be 50 or higher in order to comment.');
+                        return;
+                    }
+                    showInsertComment(!insertComment)
+                }}>Add Comment</button></div>
             }
             {comments.length > 3 && <CommentNav coms={comments} setDisplayedComments={setDisplayedComments} />}
         </div>
     )
 }
 
-function Comment({comment}) {
+function Comment({comment, upvotedPosts, isAuthenticated}) {
     const [username, setUsername] = useState('');
     const [votes, setVotes] = useState(comment.votes);
+    const [isUpvoted, setIsUpvoted] = useState(false);
     useEffect(() => {
         const getCommentUsername = async () => {
             await axios.get('http://localhost:8000/userData', {params: comment })
@@ -126,16 +152,28 @@ function Comment({comment}) {
     return (
         <div className="comment">
             <div className="votes">
-                    <p className="upvote" onClick={() => {
+                    <p className="upvote"><span tabIndex='0' onClick={() => {
+                        if(!isAuthenticated) {
+                            alert(Constants.GUEST_VOTE_ERROR)
+                            return;
+                        }
                         const incCVote = async() => {
                             const c = comment;
-                            c.votes++;
-                            setVotes(c.votes);
-                            try { await axios.post('http://localhost:8000/incCVote', comment) }
-                            catch(error) { console.log(error) }
+                            if(!upvotedPosts.includes(c.cid) && !isUpvoted) {
+                                c.votes++;
+                                setVotes(c.votes);
+                            }
+                            try {
+                                setIsUpvoted(true);
+                                await axios.post('http://localhost:8000/incCVote', c)
+                            }
+                            catch(error) {
+                                console.log(error)
+                                alert(error.response.data.message)
+                            }
                         }
                         incCVote();
-                    }}>🡅</p>
+                    }}>🡅</span></p>
                     {votes}
                 </div>
             <div><Text text={comment.text} /></div>
@@ -149,7 +187,7 @@ function CommentNav(props) {
     const setDisplayedComments = props.setDisplayedComments;
 
     return (
-        <div id="nav-button-container">
+        <div tabIndex='0' id="nav-button-container">
             {commentChunkInd !== 0 && 
                 <div id="prev-button" onClick={() => {
                     if(commentChunkInd > 0) {
