@@ -9,7 +9,6 @@ let questionChunkInd = 0;
 // Contains all of the content specifically associated with the questions page.
 
 export default function QuestionsPage() {
-
     const questionsInfo = useContext(QuestionsInfo);
     const isAuthenticated = questionsInfo.isAuthenticated
 
@@ -18,7 +17,7 @@ export default function QuestionsPage() {
             <div id="questions-header-container">
                 <div id="questions-header">
                     <h1 id="type-results-header">{useContext(QuestionsInfo).typeResults}</h1>
-                    {isAuthenticated == true && <AskQuestion />}
+                    {isAuthenticated && <AskQuestion />}
                 </div>
                 <div id="question-filter">
                     <p id="num-questions">{useContext(QuestionsInfo).numQuestions} questions</p>
@@ -87,9 +86,9 @@ function Question({question}) {
     const setDisplayedPost = questionsInfo.setDisplayedPost;
     const isAuthenticated = questionsInfo.isAuthenticated
     const [tags, setTags] = useState([])
-    const [views, setViews] = useState(question.views)
     const [votes, setVotes] = useState(question.votes)
     const [username, setUsername] = useState('')
+    const [currUserRep, setCurrUserRep] = useState(0)
 
     let qid = question.qid;
     let currTitleTagsContainer = qid + "-title-tags-container";
@@ -103,14 +102,7 @@ function Question({question}) {
         getTags();
     }, [question])
 
-    // useEffect(() => {
-    //     const getViews = async() => {
-    //         await axios.get(`http://localhost:8000/views`, {params: question})
-    //         .then(res => { setViews(res.data) })
-    //     }
-    //     getViews();
-    // }, [question])
-
+    // Username of the user who posted the current question
     useEffect(() => {
         const getQuestionUsername = async () => {
             await axios.get('http://localhost:8000/userData', {params: question })
@@ -119,36 +111,63 @@ function Question({question}) {
         getQuestionUsername();
     }, [question])
 
+    // Reputation of the user currently logged in. Used to verify reputation constraints.
+    useEffect(() => {
+        const getUserRep = async () => {
+            await axios.get('http://localhost:8000/currUser')
+            .then(res => { setCurrUserRep(res.data.reputation)})
+        }
+        getUserRep();
+    }, [])
+
     return (
         <div className="question">
             <div className="question-container">
                 <div className="votes">
                     <p className="upvote" onClick={() => {
-                        const incQVote = async() => {
-                                const q = question;
-                                setVotes(q.votes++);
-                            setDisplayedPost(q);
-                            try { await axios.post('http://localhost:8000/incQVote', q) }
-                            catch(error) { console.log(error) }
+                        if(!isAuthenticated) {
+                            alert(Constants.GUEST_VOTE_ERROR);
+                            return;
                         }
-                        incQVote();
+                        const incVote = async() => {
+                            const q = question;
+                            if(currUserRep > 50) {
+                                q.votes++;
+                                setVotes(q.votes);
+                            }
+                            try { await axios.post('http://localhost:8000/incVote', q) }
+                            catch(error) {
+                                console.log(error)
+                                alert(error.response.data.message)
+                            }
+                        }
+                        incVote();
                     }}>🡅</p>
                     {votes}
                     <p className="downvote" onClick={() => {
-                        const decQVote = async() => {
-                            const q = question;
-                            setVotes(q.votes--);
-                            setDisplayedPost(q);
-                            try { await axios.post('http://localhost:8000/decQVote', q) }
-                            catch(error) { console.log(error) }
+                        if(!isAuthenticated) {
+                            alert(Constants.GUEST_VOTE_ERROR);
+                            return;
                         }
-                        decQVote();
+                        const decVote = async() => {
+                            const q = question;
+                            if(currUserRep > 50) {
+                                q.votes--;
+                                setVotes(q.votes);
+                            }
+                            try { await axios.post('http://localhost:8000/decVote', q) }
+                            catch(error) {
+                                console.log(error)
+                                alert(error.response.data.message)
+                            }
+                        }
+                        decVote();
                     }}>🡇</p>
                 </div>
                 <p className='interaction-stats'>
                     {question.ansIds.length} answers
                     <br />
-                    {views} views
+                    {question.views} views
                 </p>
 
                 <div id={currTitleTagsContainer} className='title-tags-container'>
@@ -157,7 +176,7 @@ function Question({question}) {
                             const q = question;
                             q.views++;
                             setDisplayedPost(q);
-                            try { await axios.post('http://localhost:8000/incrementView', q) }
+                            try { await axios.post('http://localhost:8000/incView', q) }
                             catch(error) { console.log(error) }
                         }
                         incrementView();
@@ -170,7 +189,7 @@ function Question({question}) {
                 </div>
                 <DateMetadata question={question} user={username} />
             </div>
-            {isAuthenticated == true && <Comments question={question} />}
+            {isAuthenticated && <Comments question={question} />}
         </div>
     )
 }
@@ -198,23 +217,23 @@ export function DateMetadata(props) {
         str = " commented "
     }
     const time_ago = time_now - time_posted;
-    const num_secs = Math.round((time_now - time_posted)/(1000));
+    const num_secs = Math.round((time_ago)/(1000));
     const minutes_ago = 1000 * 60;
-    const num_mins = Math.round((time_now - time_posted)/(1000 * 60));
+    const num_mins = Math.round((time_ago)/(1000 * 60));
     const hours_ago = minutes_ago * 60;
-    const num_hours = Math.round((time_now - time_posted)/(1000 * 60 * 60));
+    const num_hours = Math.round((time_ago)/(1000 * 60 * 60));
     const days_ago = hours_ago * 24;
     const years_ago = days_ago * 365;
     let post_time = "";
     
-    if(time_ago > years_ago) post_time = posted_by + str + " on " + time_posted.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric',
+    if(time_ago > years_ago) post_time = str + " on " + time_posted.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric',
         hour: '2-digit', minute: '2-digit', hour12: false});
-    else if(time_ago > days_ago) post_time = posted_by + str + " on " + time_posted.toLocaleString('en-US', { month: 'long' }) + " " + time_posted.getDate() +
+    else if(time_ago > days_ago) post_time = str + " on " + time_posted.toLocaleString('en-US', { month: 'long' }) + " " + time_posted.getDate() +
         " at " + time_posted.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false});
-    else if(time_ago > hours_ago) post_time = posted_by + str + num_hours + " hour" + ((num_hours === 1) ? "" : "s") + " ago";
-    else if(time_ago > minutes_ago) post_time = posted_by + str + num_mins + " minute" + ((num_mins === 1) ? "" : "s") + " ago";
-    else post_time = posted_by + str + ((num_secs === 0) ? "just now" : num_secs + " second" + ((num_secs === 1) ? "" : "s") + " ago");
-    return ( <div className='time'>{post_time}</div> )
+    else if(time_ago > hours_ago) post_time = str + num_hours + " hour" + ((num_hours === 1) ? "" : "s") + " ago";
+    else if(time_ago > minutes_ago) post_time = str + num_mins + " minute" + ((num_mins === 1) ? "" : "s") + " ago";
+    else post_time =  str + ((num_secs === 0) ? "just now" : num_secs + " second" + ((num_secs === 1) ? "" : "s") + " ago");
+    return ( <div className='time'><strong>{posted_by}</strong>{post_time}</div> )
 }
 
 function QuestionNav() {

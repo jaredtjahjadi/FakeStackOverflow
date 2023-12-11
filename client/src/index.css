@@ -246,6 +246,17 @@ body { font-family: Arial; }
     margin-bottom: 1%;
 }
 
+.user-list-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 1% 0%;
+}
+
+.user-list-item-name, .delete-user, .delete-yes, .delete-no { cursor: pointer; }
+.user-list-item-name:hover { color: lightblue; }
+.delete-user:hover, .delete-no { color: red; }
+.delete-yes { color: green; }
+
 .tags-container
 {
     display: flex;
@@ -356,16 +367,9 @@ body { font-family: Arial; }
 
 #answers > div { border-bottom: dotted; }
 
-.answer-container-user
-{
+.answer-container {
     display: grid;
     grid-template-columns: 5% 70% 25%;
-}
-
-.answer-container-guest
-{
-    display: grid;
-    grid-template-columns: 75% 25%;
 }
 
 .answer-text

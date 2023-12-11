@@ -10,7 +10,6 @@ import axios from 'axios'
 */
 
 export default function WelcomePage({setIsAuthenticated}) {
-
     const [currPage, setCurrPage] = useState(Constants.SPLASH_PAGE)
 
     let content;
@@ -34,9 +33,7 @@ export default function WelcomePage({setIsAuthenticated}) {
 
     return (
         <>
-            <h1 className="header">
-                Welcome to Fake Stack Overflow!
-            </h1>
+            <h1 className="header">Welcome to Fake Stack Overflow!</h1>
             {content}
         </>
     )
@@ -46,12 +43,8 @@ function SplashPage({setCurrPage, setIsAuthenticated}) {
     return (
         <>
             <div id="welcome-options">
-                <button className="welcome-button" onClick={() => setCurrPage(Constants.LOGIN_PAGE)}>
-                    Login
-                </button>
-                <button className="welcome-button" onClick={() => setCurrPage(Constants.REGISTER_PAGE)}>
-                    Register
-                </button>
+                <button className="welcome-button" onClick={() => setCurrPage(Constants.LOGIN_PAGE)}>Login</button>
+                <button className="welcome-button" onClick={() => setCurrPage(Constants.REGISTER_PAGE)}>Register</button>
                 <button className="welcome-button" onClick={async () => {
                     await axios.post('http://localhost:8000/guest')
                     setIsAuthenticated(false)
@@ -85,40 +78,27 @@ function Login({setCurrPage, setIsAuthenticated}) {
                 setPassword('') // security reasons
                 setIsAuthenticated(true)
             })
+            // Display message if form field is incorrect
             .catch(error => {
-                console.log(error.response)
-                console.log(error.message)
+                const msg = error.response.data.message
+                if(msg === "The given email is not registered with a user.") setEmailError(msg);
+                else if(msg === "The password is incorrect.") setPasswordError(msg);
             })
     }
 
     return(
         <form className="welcome-form" onSubmit={handleLogin}>
+            <WelcomePageForm idName={'email'} text={"Email"} setField={setEmail} error={emailError} /><br />
+            <WelcomePageForm idName={'password'} text={"Password"} setField={setPassword} error={passwordError} /><br />
             <div>
-                <label htmlFor='email' className='welcome-input'>Email: </label>
-                <input type='text' id='email' onChange={(event) => setEmail(event.target.value)}></input>
-                <div>{emailError}</div>
-            </div>
-            <br></br>
-            <div>
-                <label htmlFor='password' className='welcome-input'>Password: </label>
-                <input type='password' id='password' onChange={(event) => setPassword(event.target.value)}></input>
-                <div>{passwordError}</div>
-            </div>
-            <br></br>
-            <div>
-                <button className="welcome-button" onClick={() => setCurrPage(Constants.SPLASH_PAGE)}>
-                        Back
-                </button>
-                <button className="welcome-button" onClick={() => setCurrPage(Constants.LOGIN_PAGE)}>
-                        Login
-                </button>
+                <button className="welcome-button" onClick={() => setCurrPage(Constants.SPLASH_PAGE)}>Back</button>
+                <button className="welcome-button" onClick={() => setCurrPage(Constants.LOGIN_PAGE)}>Login</button>
             </div>
         </form>
     )
 }
 
 function Register({setCurrPage}) {
-
     const [username, setUsername] = useState("")
     const [usernameError, setUsernameError] = useState("")
     const [email, setEmail] = useState("")
@@ -138,43 +118,38 @@ function Register({setCurrPage}) {
         const emailRegex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
         const passwordRegex = new RegExp(username + '|' + email.substring(0, email.indexOf('@')), "gi")
 
-        if(username.length == 0) {
+        if(username.length === 0) {
             setUsernameError("Invalid username.")
             return
         }
-        else
-            setUsernameError("")
+        else setUsernameError("")
 
         // Email should have a correct format.
         if(!emailRegex.test(email)) {
             setEmailError("Invalid email.")
             return
         }
-        else
-            setEmailError("")
+        else setEmailError("")
 
-        if(password.length == 0) {
-            setPasswordError("Invalid password")
+        if(password.length === 0) {
+            setPasswordError("Invalid password.")
             return
         }
-        else
-            setPasswordError("")
+        else setPasswordError("")
 
         // The typed password should not contain the username or the email id.
         if(passwordRegex.test(password)) {
             setPasswordError("The password must not contain the username nor the email id.")
             return
         }
-        else
-            setPasswordError("")
+        else setPasswordError("")
 
         // The password verification must match the password.
-        if(password != passwordVerification) {
+        if(password !== passwordVerification) {
             setPasswordVerifError("The password verification does not match the typed password.")
             return
         }
-        else
-            setPasswordVerifError("")
+        else setPasswordVerifError("")
 
         const registerUser = async () => {
             const userData = {
@@ -189,54 +164,41 @@ function Register({setCurrPage}) {
     
         registerUser()
             .then(() => {
+                alert("Registration successful.");
                 setCurrPage(Constants.LOGIN_PAGE)
             })
             .catch(error => {
-                if(!error.response)
-                    alert("Server is down. Try again later.")
-                else
-                    setEmailError("Email is already associated with an existing user.")
+                if(!error.response) alert("Server is down. Try again later.")
+                else setEmailError("Email is already associated with an existing user.")
             })
     }
 
     /*
         Ngl this is a monstrosity to look at, but it gets the job done.
         If you want to fix it, be my guest. - Torin
+
+        fixed with modularization 😎 -jared
     */
     return (
         <form className="welcome-form" onSubmit={handleRegister}>
+            <WelcomePageForm idName={'username'} text={"Username"} setField={setUsername} error={usernameError} /><br />
+            <WelcomePageForm idName={'email'} text={"Email"} setField={setEmail} error={emailError} /><br />
+            <WelcomePageForm idName={'password'} text={"Password"} setField={setPassword} error={passwordError} /><br />
+            <WelcomePageForm idName={"passwordverification"} text={"Verify Password"} setField={setPasswordVerification} error={passwordVerifError} /><br />
             <div>
-                <label htmlFor='email' className='welcome-input'>Username: </label>
-                <input type='text' id='username' onChange={(event) => setUsername(event.target.value)}></input>
-                <div>{usernameError}</div>
-            </div>
-            <br></br>
-            <div id='email-form'>
-                <label htmlFor='email' className='welcome-input'>Email: </label>
-                <input type='text' id='email' onChange={(event) => setEmail(event.target.value)}></input>
-                <div>{emailError}</div>
-            </div>
-            <br></br>
-            <div id='password-form'>
-                <label htmlFor='password' className='welcome-input'>Password: </label>
-                <input type='password' id='password' onChange={(event) => setPassword(event.target.value)}></input>
-                <div>{passwordError}</div>
-            </div>
-            <br></br>
-            <div id='password-verification-form'>
-                <label htmlFor='password_verification' className='welcome-input'>Verify Password: </label>
-                <input type='password' id='password_verification' onChange={(event) => setPasswordVerification(event.target.value)}></input>
-                <div>{passwordVerifError}</div>
-            </div>
-            <br></br>
-            <div>
-                <button className="welcome-button" onClick={() => setCurrPage(Constants.SPLASH_PAGE)}>
-                    Back
-                </button>
-                <button className="welcome-button">
-                    Sign Up
-                </button>
+                <button className="welcome-button" onClick={() => setCurrPage(Constants.SPLASH_PAGE)}>Back</button>
+                <button className="welcome-button">Sign Up</button>
             </div>
         </form>
+    )
+}
+
+function WelcomePageForm(props) {
+    return (
+        <div id={props.idName + "-form"}>
+            <label htmlFor={props.idName} className='welcome-input'>{props.text}: </label>
+            <input type={(props.idName.includes('password') ? 'password' : 'text')} id={props.idName} onChange={(event) => props.setField(event.target.value)} />
+            <div>{props.error}</div>
+        </div>
     )
 }

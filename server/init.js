@@ -1,10 +1,9 @@
-// Run this script to test your schema
-// Start the mongoDB service as a background process before running the script
-// Pass URL of your mongoDB instance as first argument(e.g., mongodb://127.0.0.1:27017/fake_so)
+// Start the mongoDB service as a background process before running the script (instructions in README.md)
+const bcrypt = require('bcrypt');
 let userArgs = process.argv.slice(2);
 
-if (!userArgs[0].startsWith('mongodb')) {
-    console.log('ERROR: You need to specify a valid mongodb URL as the first argument');
+if (userArgs.length < 2) {
+    console.log('Usage: node init.js <admin_email> <admin_password>');
     return
 }
 
@@ -19,16 +18,15 @@ let Question = require('./models/questions')
 
 
 let mongoose = require('mongoose');
-let mongoDB = userArgs[0];
+let mongoDB = 'mongodb://127.0.0.1:27017/fake_so';
 mongoose.connect(mongoDB, {useNewUrlParser: true, useUnifiedTopology: true});
-// mongoose.Promise = global.Promise;
 let db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
-let tags = [];
-let answers = [];
+db.dropDatabase();
 
-function userCreate(username, email, passwordHash) {
+async function userCreate(username, email, password, role, reputation) {
+  const passwordHash = await bcrypt.genSalt(10).then(async salt => { return await bcrypt.hash(password, salt)});
   userdetail = {
     username: username,
     email: email,
@@ -37,6 +35,8 @@ function userCreate(username, email, passwordHash) {
     reputation: 0,
     timeJoined: new Date()
   }
+  if(role != false) userdetail.role = role;
+  if(reputation != false) userdetail.reputation = reputation;
   let user = new User(userdetail);
   return user.save();
 }
@@ -53,7 +53,7 @@ function commentCreate(text, com_by) {
 }
 
 function tagCreate(name, creator) {
-  let tag = new Tag({ name: name, created_by: creator});
+  let tag = new Tag({name: name, created_by: creator});
   return tag.save();
 }
 
@@ -85,13 +85,14 @@ function questionCreate(title, summary, text, tags, answers, asked_by, ask_date_
 }
 
 const populate = async () => {
-  let u1 = await userCreate('hamkalo', 'hamkalo@gmail.com', '123')
-  let u2 = await userCreate('azad', 'azad@gmail.com', '123')
-  let u3 = await userCreate('abaya', 'abaya@gmail.com', '123')
-  let u4 = await userCreate('alia', 'alia@gmail.com', '123')
-  let u5 = await userCreate('sana', 'sana@gmail.com', '123')
-  let u6 = await userCreate('Joji John', 'jojijohn@gmail.com', '123')
-  let u7 = await userCreate('saltyPeter', 'saltypeter@gmail.com', '123')
+  const admin = await userCreate('Admin', userArgs[0], userArgs[1], 'ADMIN', 9999);
+  let u1 = await userCreate('hamkalo', 'hamkalo@gmail.com', '123', false, false)
+  let u2 = await userCreate('azad', 'azad@gmail.com', '123', false, false)
+  let u3 = await userCreate('abaya', 'abaya@gmail.com', '123', false, false)
+  let u4 = await userCreate('alia', 'alia@gmail.com', '123', false, false)
+  let u5 = await userCreate('sana', 'sana@gmail.com', '123', false, false)
+  let u6 = await userCreate('Joji John', 'jojijohn@gmail.com', '123', false, false)
+  let u7 = await userCreate('saltyPeter', 'saltypeter@gmail.com', '123', false, false)
   let c1 = await commentCreate('This is a comment :)', u1)
   let c2 = await commentCreate('Good post! 1 Reddit Gold for you.', u7)
   let t1 = await tagCreate('react', u6);

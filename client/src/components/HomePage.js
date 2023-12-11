@@ -12,6 +12,7 @@ export default function HomePage({isAuthenticated, setIsAuthenticated}) {
   const [currDisplayedQuestions, setDisplayedQuestions] = useState([]) // For Questions Page
   const [numQuestions, setNumQuestions] = useState(allQuestions.length);
   const [typeResults, setTypeResults] = useState("All Questions");
+  const [currUserProfile, setUserProfile] = useState({});
 
   /**
    * FOR JARED (again)
@@ -103,7 +104,9 @@ export default function HomePage({isAuthenticated, setIsAuthenticated}) {
             setDisplayedPost,
             getNewestQuestions,
             setIsAuthenticated,
-            isAuthenticated
+            isAuthenticated,
+            currUserProfile,
+            setUserProfile
           }
         }>
           <div id="header" className="header">

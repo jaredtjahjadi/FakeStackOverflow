@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { DateMetadata, splitArray } from "./QuestionsPage";
 import { ErrorMessage } from "./PostQuestionPage";
 import { Text } from "./SeeAnswers";
+import * as Constants from '../constants';
 import axios from "axios";
 
 let commentChunkInd = 0;
@@ -14,7 +15,6 @@ let commentChunkInd = 0;
 export default function Comments(props) {
     let question = props.question;
     let answer = props.answer;
-    const emptyFieldStr = "This field must be filled out.";
     const [comments, setComments] = useState([]);
     const [currDisplayedComments, setDisplayedComments] = useState([]);
     const [insertComment, showInsertComment] = useState(false);
@@ -33,11 +33,7 @@ export default function Comments(props) {
         getComments();
     }, [question, answer])
 
-    useEffect(() => {
-        setDisplayedComments(comments.slice(commentChunkInd * 3, (commentChunkInd * 3) + 3));
-    }, [comments])
-
-
+    useEffect(() => { setDisplayedComments(comments.slice(commentChunkInd * 3, (commentChunkInd * 3) + 3)) }, [comments])
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -48,34 +44,35 @@ export default function Comments(props) {
                 event.target.reset();
                 setFormErrors({});
                 showInsertComment(!insertComment);
+                let comment;
                 if(question) {
-                    let comment = {
+                    comment = {
                         text: commentText,
                         comDate: new Date(),
                         votes: 0,
                         qid: question.qid
                     }
-                    await axios.post('http://localhost:8000/postQComment', comment)
-
-                    setComments([comment, ...comments])
                 }
                 if(answer) {
-                    let comment = {
+                    comment = {
                         text: commentText,
                         comDate: new Date(),
                         votes: 0,
                         aid: answer.aid
                     }
-                    await axios.post('http://localhost:8000/postAComment', comment)
-                    setComments([comment, ...comments])
                 }
-            } catch { console.log(errors); }
+                await axios.post('http://localhost:8000/postComment', comment)
+                setComments([comment, ...comments])
+            } catch(error) {
+                console.log(error);
+                alert(error.response.data.message);
+            }
         } else setFormErrors(errors);
     }
 
     const validateForm = ({commentText}) => {
         const errors = {};
-        if(commentText.length === 0) errors.commentText = emptyFieldStr;
+        if(commentText.length === 0) errors.commentText = Constants.EMPTY_FIELD_ERROR;
         const tokens = commentText.match(/\[[^\]]*\]\([^)]*\)/g); // [...](...). "..." = anything (including empty string)
         const regex = /\[.+?\]\(\s*(https:\/\/|http:\/\/)[^)](.*?)\)/g; // [text](link)
         if(tokens) {
@@ -103,6 +100,7 @@ export default function Comments(props) {
 
 function Comment({comment}) {
     const [username, setUsername] = useState('');
+    const [votes, setVotes] = useState(comment.votes);
     useEffect(() => {
         const getCommentUsername = async () => {
             await axios.get('http://localhost:8000/userData', {params: comment })
@@ -115,20 +113,16 @@ function Comment({comment}) {
         <div className="comment">
             <div className="votes">
                     <p className="upvote" onClick={() => {
-                        const incQVote = async() => {
+                        const incCVote = async() => {
+                            const c = comment;
+                            c.votes++;
+                            setVotes(c.votes);
                             try { await axios.post('http://localhost:8000/incCVote', comment) }
                             catch(error) { console.log(error) }
                         }
-                        incQVote();
+                        incCVote();
                     }}>🡅</p>
-                    {comment.votes}
-                    <p className="downvote" onClick={() => {
-                        const decQVote = async() => {
-                            try { await axios.post('http://localhost:8000/decCVote', comment) }
-                            catch(error) { console.log(error) }
-                        }
-                        decQVote();
-                    }}>🡇</p>
+                    {votes}
                 </div>
             <div><Text text={comment.text} /></div>
             <DateMetadata comment={comment} user={username} />

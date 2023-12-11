@@ -33,3 +33,7 @@ export const MODIFY_QUESTION_PAGE = 'MODIFY_QUESTION_PAGE'
 export const SEE_USER_ANSWERS_PAGE = 'SEE_USER_ANSWERS_PAGE'
 
 export const MODIFY_ANSWER_PAGE = 'MODIFY_ANSWER_PAGE'
+
+export const EMPTY_FIELD_ERROR = "This field must be filled out."
+
+export const GUEST_VOTE_ERROR = 'Guest users are not permitted to vote. Please register.'

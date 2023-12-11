@@ -6,17 +6,13 @@ import axios from 'axios';
 import { ErrorMessage } from './PostQuestionPage';
 
 export default function PostAnswerPage({answer}) {
-    const emptyFieldStr = "This field must be filled out."
     const questionsInfo = useContext(QuestionsInfo);
     const setCurrPage = questionsInfo.setCurrPage;
     const currDisplayedPost = questionsInfo.currDisplayedPost;
     const [formErrors, setFormErrors] = useState({});
     const [answerText, setAnswerText] = useState('')
 
-    useEffect(() => {
-        if(answer)
-            setAnswerText(answer.text)
-    }, [answer])
+    useEffect(() => {if(answer) setAnswerText(answer.text)}, [answer])
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -25,7 +21,6 @@ export default function PostAnswerPage({answer}) {
         //If no errors in form (all fields are valid)
         if(Object.keys(errors).length === 0) {
             try {
-
                 if(answerText) {
                     await axios.post('http://localhost:8000/modifyAnswer', {
                         text: ansText,
@@ -36,7 +31,6 @@ export default function PostAnswerPage({answer}) {
                     setFormErrors({});
                     setCurrPage(Constants.USER_PROFILE);
                 }
-
                 else {
                     await axios.post('http://localhost:8000/postAnswer', {
                         text: ansText,
@@ -57,7 +51,7 @@ export default function PostAnswerPage({answer}) {
 
     const validateForm = ({ansText}) => {
         const errors = {}; 
-        if(ansText.length === 0) errors.ansText = emptyFieldStr;
+        if(ansText.length === 0) errors.ansText = Constants.EMPTY_FIELD_ERROR;
         const tokens = ansText.match(/\[[^\]]*\]\([^)]*\)/g); // [...](...). "..." = anything (including empty string)
         const regex = /\[.+?\]\(\s*(https:\/\/|http:\/\/)[^)](.*?)\)/g; // [text](link)
         if(tokens) {

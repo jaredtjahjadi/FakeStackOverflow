@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import * as Constants from '../constants';
 import QuestionsPage from './QuestionsPage';
 import PostQuestionPage from './PostQuestionPage';
@@ -61,9 +61,7 @@ export function Main() {
     }
 
     return (
-        <div id='main' className='main'>
-            {mainContent}
-        </div>
+        <div id='main' className='main'>{mainContent}</div>
     )
 }
 
@@ -75,8 +73,16 @@ export function Menu() {
     const setCurrPage = questionsInfo.setCurrPage;
     const setIsAuthenticated = questionsInfo.setIsAuthenticated
     const isAuthenticated = questionsInfo.isAuthenticated
+    const setUserProfile = questionsInfo.setUserProfile;
 
-    console.log(isAuthenticated)
+    const [currUser, setCurrUser] = useState();
+    useEffect(() => {
+        const getCurrUser = async () => {
+            await axios.get('http://localhost:8000/currUser')
+            .then(res => { setCurrUser(res.data) })
+        }
+        getCurrUser();
+    }, [])
 
     return (
         <div id="menu" className="column">
@@ -98,7 +104,10 @@ export function Menu() {
             {isAuthenticated &&
                 <div
                 className={currPage === Constants.USER_PROFILE ? "active" : undefined}
-                    onClick={async () => {setCurrPage(Constants.USER_PROFILE)}}
+                    onClick={() => {
+                        setUserProfile(currUser)
+                        setCurrPage(Constants.USER_PROFILE)
+                    }}
                 >
                     User Profile
                 </div>

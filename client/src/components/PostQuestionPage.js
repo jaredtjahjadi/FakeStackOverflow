@@ -5,7 +5,6 @@ import { QuestionsInfo } from './HomePage';
 import axios from 'axios'
 
 export default function PostQuestionPage() {
-    const emptyFieldStr = "This field must be filled out."
     const questionsInfo = useContext(QuestionsInfo);
     const setCurrPage = questionsInfo.setCurrPage;
     const getNewestQuestions = questionsInfo.getNewestQuestions
@@ -25,10 +24,7 @@ export default function PostQuestionPage() {
     const [questionText, setQuestionText] = useState(currDisplayedPost.text)
     const [questionTags, setQuestionTags] = useState(currDisplayedPost.tags)
 
-    /**
-     * We retrieve the tags and convert it to string format to insert into the Tags form.
-     */
-
+    // We retrieve the tags and convert it to string format to insert into the Tags form.
     useEffect(() => {
         const getTags = async () => {
             await axios.get('http://localhost:8000/tags', {params: currDisplayedPost.tagIds})
@@ -93,7 +89,10 @@ export default function PostQuestionPage() {
                     await getNewestQuestions()
                     setCurrPage(Constants.QUESTIONS_PAGE);
                 }
-            } catch (error) { console.log(error); }
+            } catch (error) {
+                console.log(error);
+                alert(error.response.data.message)
+            }
         } else setFormErrors(errors);
     }
 
@@ -107,21 +106,21 @@ export default function PostQuestionPage() {
         const errors = {};
 
         // Title validation
-        if (questionTitle.length === 0) errors.questionTitle = emptyFieldStr;
+        if (questionTitle.length === 0) errors.questionTitle = Constants.EMPTY_FIELD_ERROR;
         else if (questionTitle.length > 100) errors.questionTitle = "Question title must be no more than 100 characters.";
 
         // Summary validation
-        if(questionSummary.length === 0) errors.questionTile = emptyFieldStr;
+        if(questionSummary.length === 0) errors.questionTile = Constants.EMPTY_FIELD_ERROR;
         else if (questionSummary.length > 140) errors.questionSummary = "Question summary must be no more than 140 characters.";
 
         // Text validation
-        if (questionText.length === 0) errors.questionText = emptyFieldStr;
+        if (questionText.length === 0) errors.questionText = Constants.EMPTY_FIELD_ERROR;
         // Hyperlink validation
         const tokens = questionText.match(/\[[^\]]*\]\([^)]*\)/g); // [...](...). "..." = anything (including empty string)
         const regex = /\[.+?\]\((https:\/\/|http:\/\/)[^)](.*?)\)/g; // [text](link)
         // If potential hyperlinks are present in the question text, test them if they are valid against the regex
         if(tokens) for(let token of tokens) if(!regex.test(token)) errors.questionText = "Hyperlink in question text invalid. Must be of the form [text](link).";
-        if(questionTagStr.length === 0) errors.questionTags = emptyFieldStr;
+        if(questionTagStr.length === 0) errors.questionTags = Constants.EMPTY_FIELD_ERROR;
         if(questionTags.length > 5) errors.questionTags = "No more than five tags for one question."; // Ensure there are no more than 5 tags
         // Ensure each tag is no more than 10 characters
         for(var i = 0; i < questionTags.length; i++) {
@@ -129,13 +128,10 @@ export default function PostQuestionPage() {
             if((lower !== "shared-preferences" || lower !== "web-scripting" || lower !== "android-studio") && lower.length > 10)
                 if(lower.length > 10) errors.questionTags = "Tag length must be no more than 10 characters.";
         }
-        //if(questionUsername.length === 0) errors.questionUsername = emptyFieldStr;
+        //if(questionUsername.length === 0) errors.questionUsername = Constants.EMPTY_FIELD_ERROR;
         return errors;
     };
 
-    /**
-     * TODO (Jared): Double-check if only one error is allowed to appear at a time or if multiple errors can appear. If the latter, fix below code.
-     */
     return (
         <div id="new-question">
             <form id="new-question-form" name="new-question" onSubmit={handleSubmit}>
@@ -145,7 +141,6 @@ export default function PostQuestionPage() {
                     instrs="Limit title to 100 characters or less"
                     input={true}
                     name='title'
-                    
                     value={isModifying ? questionTitle : null}
                     onChange={isModifying ? (event) => setQuestionTitle(event.target.value) : null}
                 />
@@ -155,7 +150,6 @@ export default function PostQuestionPage() {
                     title="Question Summary"
                     input={true}
                     name='summary'
-                    
                     value={isModifying ? questionSummary : null}
                     onChange={isModifying ? (event) => setQuestionSummary(event.target.value) : null}
                 />
@@ -166,7 +160,6 @@ export default function PostQuestionPage() {
                     instrs="Add details"
                     input={false}
                     name='qtext'
-                    
                     value={isModifying ? questionText : null}
                     onChange={isModifying ? (event) => setQuestionText(event.target.value) : null}
                 />
@@ -177,7 +170,6 @@ export default function PostQuestionPage() {
                     instrs="Add keywords separated by whitespace"
                     input={true}
                     name='tags'
-                    
                     value={isModifying ? questionTags : null}
                     onChange={isModifying ? (event) => setQuestionTags(event.target.value) : null}
                 />

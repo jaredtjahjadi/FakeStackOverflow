@@ -29,9 +29,8 @@ export default function TagCard(props) {
     const numQuestions = questions.length;
     return (
         <div className="tag-card">
-            {isEditing ? (
-                <input id="tag-edit" value={tagName} onChange={(event) => setTagName(event.target.value)}/>
-            ) : (
+            {isEditing ? (<input id="tag-edit" value={tagName} onChange={(event) => setTagName(event.target.value)}/>)
+            : (
                 <button className="tag-link" onClick={() => {
                     setDisplayedQuestions(questions);
                     setNumQuestions(questions.length);

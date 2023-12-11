@@ -28,7 +28,7 @@ app.use(cors({
 }))
 app.use(express.json())
 app.use(session({
-    secret: `howtf`,
+    secret: `howtf`, // felt
     cookie: {},
     resave: false,
     saveUninitialized: false,
@@ -102,22 +102,11 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
     // Email must be registered with a user.
     const user = await User.findOne({email: req.body.email}).exec()
-    if(user == null) {
-        return res.status(403).send({
-            message: "The given email is not registered with a user."
-        })
-    }
+    if(user === null) return res.status(403).send({message: "The given email is not registered with a user."})
 
     // Password must be correct
     const verdict = await bcrypt.compare(req.body.password, user.passwordHash)
-    if(!verdict) {
-        return res.status(403).send({
-            message: "The password is incorrect."
-        })
-    }
-
-    // req.session.username = user.username
-    // req.session.email = user.email
+    if(!verdict) return res.status(403).send({message: "The password is incorrect."})
 
     req.session.userId = user._id;
     res.status(200).send()
@@ -130,27 +119,24 @@ app.post('/guest', async (req, res) => {
 
 app.use(checkSession)
 
-app.get('/', (req,res) => {
-    res.send("fake_so visited")
-})
+app.get('/', (req,res) => { res.send("fake_so visited") })
 
 /*
     User Profile
 */
 
-app.get('/userProfile', (req,res) => {
-    User.findById({_id: req.session.userId}).exec()
-        .then(user => {
-            res.send({
-                username: user.username,
-                reputation: user.reputation,
-                timeJoined: user.timeJoined
-            })
-        })
+app.get('/userProfile', async (req, res) => {
+    const user = await User.findById(req.query.uid);
+    res.send({
+        username: user.username,
+        reputation: user.reputation,
+        timeJoined: user.timeJoined,
+        role: user.role
+    })
 })
 
 app.get('/postedQuestions', (req, res) => {
-    Question.find({posted_by: req.session.userId}).exec()
+    Question.find({posted_by: req.query.uid}).exec()
         .then(questions => { res.send(formatQuestions(questions)) })
 })
 
@@ -158,9 +144,28 @@ app.get('/postedQuestions', (req, res) => {
     Routes for the main fake_so page
 */
 
-app.get('/username', (req, res) => {
-    const user = User.find({_id: req.session.userId})
-    res.send(user.username)
+/**
+ * This route is used to retrieve the current user's username, reputation, and role.
+ * The current user's reputation is needed in order to check the user's reputation against
+ * some constraints related to reputation (i.e., needs at least 50 reputation in order to vote).
+ * The current user's role is needed in order to determine the permissions the user is able to do
+ * (e.g., admins can delete other user's posts).
+ * The password is set to undefined in order to maintain security.
+ * 
+ * This is the best way I could figure out how to get data of the current user, feel free to change
+ * if a better way is found.
+ * 
+ * - 🐻
+ */
+app.get('/currUser', async (req, res) => {
+    const user = await User.findById(req.session.userId)
+    user.passwordHash = undefined;
+    res.send({
+        uid: user._id,
+        username: user.username,
+        reputation: user.reputation,
+        role: user.role
+    })
 })
 
 app.get('/newestQuestions', (req, res) => {
@@ -217,9 +222,8 @@ app.get('/tags', (req, res) => {
 })
 
 app.get('/usedTags', async (req, res) => {
-
     try {
-        const tags = await Tag.find({created_by: req.session.userId})
+        const tags = await Tag.find({created_by: req.query.uid})
         res.send(formatTags(tags))
     } catch(error) { console.error(error) }
 })
@@ -241,10 +245,8 @@ app.post('/deleteTag', async (req, res) => {
 app.get('/tagExists/:tagName', async (req, res) => {
     try {
         const tag = await Tag.findOne({name: req.params.tagName})
-        if(!tag)
-            res.status(200).send()
-        else
-            res.status(404).send()
+        if(!tag) res.status(200).send()
+        else res.status(404).send()
     } catch(error) { console.error(error) }
 })
 
@@ -343,39 +345,58 @@ app.get('/searchResults', (req, res) => {
  */
 app.get('/userData', (req, res) => {
     async function getUserData() {
-
         let user;
-
-        if(req.query.postedBy)
-            user = await User.findById(req.query.postedBy)
-
-        else
-            user = await User.findById(req.session.userId)
-
+        if(req.query.postedBy) user = await User.findById(req.query.postedBy)
+        else user = await User.findById(req.session.userId)
         res.send(user.username)
     }
-
     getUserData()
+})
+
+app.get('/allUsers', (req, res) => {
+    async function getAllUsers() {
+        try {
+            const tempUsers = await User.find().exec();
+            const users = [];
+            for(let i = 0; i < tempUsers.length; i++) {
+                users[i] = {
+                    uid: tempUsers[i]._id,
+                    username: tempUsers[i].username,
+                    reputation: tempUsers[i].reputation,
+                    role: tempUsers[i].role
+                }
+            }
+            res.send(users);
+        } catch(error) { console.log(error) }
+    }
+    getAllUsers();
 })
 
 app.post('/addQuestion', (req, res) => {
     async function addQuestion() {
-        try{
+        const currUserId = req.session.userId;
+        try {
             const data = req.body
-            data.posted_by = await User.findOne({_id: req.session.userId}, {_id: 1})
+            data.posted_by = await User.findOne({_id: currUserId}, {_id: 1, reputation: 1})
             const tagIds = []
             /*
                 Search for the tag IDs associated with the given tag names,
                 and insert them into the new question document
             */
+
             await Tag.find({ name: {$in: data.tags}}).exec()
                 .then(tags => {
+                    // Iterate through the tags passed in the form
                     for(t of data.tags) {
-                        let tag = tags.find(tag => tag.name == t)
-                        if(tag != undefined) tagIds.push(tag._id)
+                        let tag = tags.find(tag => tag.name == t); // First element in tags (all tags in DB) that matches name of the tag passed in the form
+                        if(tag !== undefined) tagIds.push(tag._id); // An element with the same name exists
                         else {
+                            // Check user reputation: if < 50, return error message
+                            if(data.posted_by.reputation < 50)
+                                return res.status(403).send({message: "User reputation must be 50 or higher in order to create a new tag."});
+
                             // Create a new tag if not found
-                            const tag = new Tag({name: t, created_by: req.session.userId})
+                            const tag = new Tag({name: t, created_by: currUserId})
                             tag.save()
                             tagIds.push(tag._id)
                         }
@@ -428,7 +449,6 @@ app.post('/modifyAnswer', (req, res) => {
 })
 
 app.post('/deleteAnswer', (req, res) => {
-
     async function deleteAnswer() {
         try {
             const ans = await Answer.findOne({_id: req.body.aid})
@@ -444,7 +464,7 @@ app.post('/deleteAnswer', (req, res) => {
 app.get('/answeredQuestions', (req, res) => {
     async function getAnsweredQuestions() {
         try {
-            let answers = await Answer.find({posted_by: req.session.userId})
+            let answers = await Answer.find({posted_by: req.query.uid})
             let questions = await Question.find({answers: {$in: answers}}).sort({ask_date_time: -1})
 
             res.send(formatQuestions(questions))
@@ -473,7 +493,6 @@ app.get('/userFormattedAnswers/:questionId', (req, res) => {
 
 app.post('/deleteQuestion', (req, res) => {
     async function deleteQuestion() {
-
         // DON"T FORGET TO DELETE TAGS AND ANSWERS TOO!!!!
         try {
             const q = await Question.findById(req.body.qid)
@@ -505,19 +524,31 @@ app.post('/postAnswer', (req, res) => {
     postAnswer();
 })
 
-app.post('/incQVote', async(req, res) => {
-    await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { votes: 1}})
+// Increment/decrement the vote of a question or answer, which also affects the original poster's reputation
+app.post('/incVote', async(req, res) => {
+    const currUser = await User.findById({_id: req.session.userId}, {reputation: 1})
+    if(currUser.reputation < 50) return res.status(403).send({message: "User reputation must be 50 or higher in order to vote."});
+    const post = req.body;
+    if(post.qid) await Question.findByIdAndUpdate({_id: post.qid}, {$inc: {votes: 1}})
+    else await Answer.findByIdAndUpdate({_id: post.aid}, {$inc: {votes: 1}})
+    await User.findByIdAndUpdate({_id: post.postedBy}, {$inc: {reputation: 5}})
 })
-app.post('/decQVote', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { votes: -1}}) })
-app.post('/incAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: 1}}) })
-app.post('/decAVote', async(req, res) => { await Answer.findByIdAndUpdate({_id: req.body.aid}, {$inc: { votes: -1}}) })
-app.post('/incCVote', async(req, res) => { await Comment.findByIdAndUpdate({_id: req.body.cid}, {$inc: { votes: 1}}) })
-app.post('/decCVote', async(req, res) => { await Comment.findByIdAndUpdate({_id: req.body.cid}, {$inc: { votes: -1}}) })
-app.post('/incrementView', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: { views: 1}}) })
+app.post('/decVote', async(req, res) => {
+    const currUser = await User.findById({_id: req.session.userId}, {reputation: 1})
+    if(currUser.reputation < 50) return res.status(403).send({message: "User reputation must be 50 or higher in order to vote."});
+    const post = req.body;
+    if(post.qid) await Question.findByIdAndUpdate({_id: post.qid}, {$inc: {votes: -1}})
+    else await Answer.findByIdAndUpdate({_id: post.aid}, {$inc: {votes: -1}})
+    await User.findByIdAndUpdate({_id: post.postedBy}, {$inc: {reputation: -10}})
+})
+app.post('/incCVote', async(req, res) => { await Comment.findByIdAndUpdate({_id: req.body.cid}, {$inc: {votes: 1}}) })
+app.post('/incView', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: {views: 1}}) })
 
-app.post('/postQComment', (req, res) => {
+app.post('/postComment', (req, res) => {
     async function postComment() {
         try {
+            const currUser = await User.findById({_id: req.session.userId}, {reputation: 1})
+            if(currUser.reputation < 50) return res.status(403).send({message: "User reputation must be 50 or higher in order to comment."});
             const com = new Comment({
                 text: req.body.text,
                 posted_by: req.session.userId,
@@ -525,28 +556,29 @@ app.post('/postQComment', (req, res) => {
                 votes: 0
             })
             com.save();
-            await Question.findByIdAndUpdate({_id: req.body.qid}, { $push: { comments: com._id }})
+            if(req.body.qid) await Question.findByIdAndUpdate({_id: req.body.qid}, { $push: { comments: com._id }})
+            else await Answer.findByIdAndUpdate({_id: req.body.aid}, { $push: { comments: com._id }})
             res.status(200).send();
         } catch(error) { console.log(error) }
     }
     postComment();
 })
 
-app.post('/postAComment', (req, res) => {
-    async function postComment() {
-        try {
-            const com = new Comment({
-                text: req.body.text,
-                posted_by: req.session.userId,
-                com_date_time: req.body.comDate,
-                votes: 0
-            })
-            com.save();
-            await Answer.findByIdAndUpdate({_id: req.body.aid}, { $push: { comments: com._id }})
-            res.status(200).send()
-        } catch(error) { console.log(error) }
-    }
-    postComment();
+app.post('/deleteUser', async (req, res) => {
+    const userIdToDelete = req.body.uid; // User to be deleted (will be referred to as "user TBD" in the comments)
+    if(userIdToDelete === req.session.userId) return res.status(403).send({message: "You can't delete yourself!"});
+    const questions = await Question.find({posted_by: userIdToDelete}) // All questions made by the user TBD
+    // Deletes all answers and comments associated with each question made by the user TBD
+    questions.map(question => {
+        Answer.deleteMany({_id: {$in: question.answers}})
+        Comment.deleteMany({_id: {$in: question.comments}})
+    })
+    await Question.deleteMany({posted_by: userIdToDelete}) // Deletes the questions themselves
+    const answers = await Answer.find({posted_by: userIdToDelete}) // All answers made by user TBD
+    answers.map(answer => {Comment.deleteMany({_id: {$in: answer.comments}})}) // All comments associated with each answer made by the user TBD
+    await Answer.deleteMany({posted_by: userIdToDelete}); // Deletes the answers themselves
+    await User.deleteOne({_id: userIdToDelete}); // Deletes the user at last
+    res.status(200).send();
 })
 
 /*
