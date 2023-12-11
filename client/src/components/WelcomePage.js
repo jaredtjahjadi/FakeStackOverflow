@@ -46,8 +46,13 @@ function SplashPage({setCurrPage, setIsAuthenticated}) {
                 <button className="welcome-button" onClick={() => setCurrPage(Constants.LOGIN_PAGE)}>Login</button>
                 <button className="welcome-button" onClick={() => setCurrPage(Constants.REGISTER_PAGE)}>Register</button>
                 <button className="welcome-button" onClick={async () => {
-                    await axios.post('http://localhost:8000/guest')
-                    setIsAuthenticated(false)
+                    try {
+                        await axios.post('http://localhost:8000/guest')
+                        setIsAuthenticated(false)
+                    }
+                    catch(error) {
+                        alert("Request failed, please try again later.")
+                    }
                 }}>
                     Continue as Guest
                 </button>
@@ -80,9 +85,14 @@ function Login({setCurrPage, setIsAuthenticated}) {
             })
             // Display message if form field is incorrect
             .catch(error => {
-                const msg = error.response.data.message
-                if(msg === "The given email is not registered with a user.") setEmailError(msg);
-                else if(msg === "The password is incorrect.") setPasswordError(msg);
+                if(!error.response)
+                    alert("Request failed, please try again later.")
+
+                else {
+                    const msg = error.response.data.message
+                    if(msg === "The given email is not registered with a user.") setEmailError(msg);
+                    else if(msg === "The password is incorrect.") setPasswordError(msg);
+                }
             })
     }
 
@@ -115,7 +125,7 @@ function Register({setCurrPage}) {
             Regex for a valid email is taken from this source:
             https://www.regular-expressions.info/email.html
         */
-        const emailRegex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
+        const emailRegex = /^[^@]+@[^@]+\.[^@]+$/
         const passwordRegex = new RegExp(username + '|' + email.substring(0, email.indexOf('@')), "gi")
 
         if(username.length === 0) {

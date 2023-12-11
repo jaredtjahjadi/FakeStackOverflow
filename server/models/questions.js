@@ -14,7 +14,7 @@ const questionSchema = new Schema({
     ask_date_time: {type: Date, default: new Date()},
     views: {type: Number, default: 0},
     votes: {type: Number, default: 0},
-    comments: [{type: Schema.Types.ObjectId, ref: 'Question'}]
+    comments: [{type: Schema.Types.ObjectId, ref: 'Comment'}]
 })
 
 questionSchema.virtual('url').get(function() {

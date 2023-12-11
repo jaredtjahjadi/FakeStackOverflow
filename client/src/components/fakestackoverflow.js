@@ -43,8 +43,7 @@ export default function FakeStackOverflow() {
         .then(() => setIsAuthenticated(true))
         .catch(error => {
           if(!error.response)
-            console.log("ERROR")
-          console.log(error)
+            alert("Request failed. Try again later.")
         })
     }
 
@@ -55,7 +54,6 @@ export default function FakeStackOverflow() {
 
     case null:
       return <WelcomePage setIsAuthenticated={setIsAuthenticated}/>
-      break;
 
     default:
       return <HomePage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated}/>

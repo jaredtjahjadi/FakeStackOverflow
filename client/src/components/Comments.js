@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { DateMetadata, splitArray } from "./QuestionsPage";
 import { ErrorMessage } from "./PostQuestionPage";
 import { Text } from "./SeeAnswers";
 import * as Constants from '../constants';
 import axios from "axios";
+import {QuestionsInfo} from './HomePage';
 
 let commentChunkInd = 0;
 
@@ -15,6 +16,9 @@ let commentChunkInd = 0;
 export default function Comments(props) {
     let question = props.question;
     let answer = props.answer;
+    const questionsInfo = useContext(QuestionsInfo)
+    const setIsAuthenticated = questionsInfo.setIsAuthenticated
+    const setCurrPage = questionsInfo.setCurrPage
     const [comments, setComments] = useState([]);
     const [currDisplayedComments, setDisplayedComments] = useState([]);
     const [insertComment, showInsertComment] = useState(false);
@@ -28,10 +32,19 @@ export default function Comments(props) {
                 if(question) res = await axios.get(`http://localhost:8000/questions/${question.qid}/comments`);
                 if(answer) res = await axios.get(`http://localhost:8000/answers/${answer.aid}/comments`);
                 setComments(res.data.reverse());
-            } catch(error) { console.log(error) }
+            } catch(error) { 
+                if(!error.response) {
+                    alert("Request failed, please try again later.")
+                    setIsAuthenticated(null)
+                    setCurrPage(Constants.SPLASH_PAGE)
+                }
+                else {
+                    alert("Post being commented no longer exists.")
+                }
+            }
         }
         getComments();
-    }, [question, answer])
+    }, [question, answer, setCurrPage, setIsAuthenticated])
 
     useEffect(() => { setDisplayedComments(comments.slice(commentChunkInd * 3, (commentChunkInd * 3) + 3)) }, [comments])
 
@@ -64,6 +77,7 @@ export default function Comments(props) {
                 await axios.post('http://localhost:8000/postComment', comment)
                 setComments([comment, ...comments])
             } catch(error) {
+
                 console.log(error);
                 alert(error.response.data.message);
             }

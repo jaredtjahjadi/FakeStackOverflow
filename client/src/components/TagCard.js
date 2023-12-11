@@ -76,7 +76,7 @@ export default function TagCard(props) {
 
                             setIsEditing(false)
                             setErrMsg("")
-                            const res = await axios.post('http://localhost:8000/modifyTag', {
+                            await axios.post('http://localhost:8000/modifyTag', {
                                 tid: tag.tid,
                                 name: inputtedName
                             })
@@ -88,7 +88,7 @@ export default function TagCard(props) {
                         <>
                             <button onClick={() => setIsEditing(true)}>Edit</button>
                             <button onClick={async () => {
-                                const res = await axios.post('http://localhost:8000/deleteTag', tag)
+                                await axios.post('http://localhost:8000/deleteTag', tag)
                                 setUsedTags(usedTags.filter(t => t.tid !== tag.tid))
                                 console.log(usedTags)
                             }}>
