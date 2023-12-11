@@ -93,8 +93,12 @@ function Answer({answer, setCurrPage, setDisplayedPost, isUsers, setAnswers, ans
     const [username, setUsername] = useState('');
     const questionsInfo = useContext(QuestionsInfo)
     const isAuthenticated = questionsInfo.isAuthenticated
-
     const [votes, setVotes] = useState(answer.votes);
+    const [currUserRep, setCurrUserRep] = useState(0);
+    const [upvotedPosts, setUpvotedPosts] = useState([]);
+    const [downvotedPosts, setDownvotedPosts] = useState([]);
+    const [isUpvoted, setIsUpvoted] = useState(false);
+    const [isDownvoted, setIsDownvoted] = useState(false);
 
     useEffect(() => {
         const getAnswerUsername = async () => {
@@ -103,6 +107,19 @@ function Answer({answer, setCurrPage, setDisplayedPost, isUsers, setAnswers, ans
         }
         getAnswerUsername();
     }, [answer])
+
+    useEffect(() => {
+        const getUserData = async () => {
+            await axios.get('http://localhost:8000/currUser')
+            .then(res => {
+                setCurrUserRep(res.data.reputation)
+                setUpvotedPosts(res.data.upvoted_posts)
+                setDownvotedPosts(res.data.downvoted_posts)
+            })
+        }
+        getUserData();
+    }, [])
+
     return (
         <div>
             <div id={answer.aid} className="answer-container">
@@ -114,13 +131,22 @@ function Answer({answer, setCurrPage, setDisplayedPost, isUsers, setAnswers, ans
                         }
                         const incVote = async() => {
                             const a = answer;
-                            a.votes++;
-                            setVotes(a.votes);
-                            try { await axios.post('http://localhost:8000/incVote', answer) }
-                            catch(error) { console.log(error) }
+                            if(currUserRep >= 50 && !upvotedPosts.includes(a.aid) && !isUpvoted) {
+                                a.votes++;
+                                setVotes(a.votes);
+                            }
+                            try {
+                                setIsUpvoted(true);
+                                if(isDownvoted) setIsDownvoted(false);
+                                await axios.post('http://localhost:8000/incVote', a)
+                            }
+                            catch(error) {
+                                console.log(error)
+                                alert(error.response.data.message)
+                            }
                         }
                         incVote();
-                    }}>🡅</p>
+                    }}><span tabIndex='0'>🡅</span></p>
                     {votes}
                     <p className="downvote" onClick={() => {
                         if(!isAuthenticated) {
@@ -129,13 +155,22 @@ function Answer({answer, setCurrPage, setDisplayedPost, isUsers, setAnswers, ans
                         }
                         const decVote = async() => {
                             const a = answer;
-                            a.votes--;
-                            setVotes(a.votes);
-                            try { await axios.post('http://localhost:8000/decVote', answer) }
-                            catch(error) { console.log(error) }
+                            if(currUserRep > 50 && !downvotedPosts.includes(a.aid) && !isDownvoted) {
+                                a.votes--;
+                                setVotes(a.votes);
+                            }
+                            try {
+                                setIsDownvoted(true);
+                                if(isUpvoted) setIsUpvoted(false);
+                                await axios.post('http://localhost:8000/decVote', a)
+                            }
+                            catch(error) {
+                                console.log(error)
+                                alert(error.response.data.message)
+                            }
                         }
                         decVote();
-                    }}>🡇</p>
+                    }}><span tabIndex='0'>🡇</span></p>
                 </div>
                 <div className='answer-text'><Text text={answer.text} /></div>
                 <DateMetadata answer={answer} user={username} />
@@ -184,7 +219,7 @@ function Hyperlink(props) {
     let refBegin = token.indexOf(']') + 2;
     let refEnd = token.indexOf(')', refBegin);
     let ref = token.slice(refBegin, refEnd);
-    return <a href={ref} target="_blank" rel="noreferrer">{title}</a>
+    return <a tabIndex='0' href={ref} target="_blank" rel="noreferrer">{title}</a>
 }
 
 export function AnswerNav(props) {
@@ -193,13 +228,13 @@ export function AnswerNav(props) {
     
     return (
         <div id="nav-button-container">
-            <div id="prev-button" onClick={() => {
+            <div tabIndex='0' id="prev-button" onClick={() => {
                 if(answerChunkInd > 0) {
                     answerChunkInd--;
                     setDisplayedAnswers(answerChunks[answerChunkInd]);
                 }
             }}>◄ Prev</div>
-            <div id="next-button" onClick={() => {
+            <div tabIndex='0' id="next-button" onClick={() => {
                 if(answerChunkInd < answerChunks.length - 1) {
                     answerChunkInd++;
                     setDisplayedAnswers(answerChunks[answerChunkInd]);

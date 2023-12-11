@@ -10,7 +10,9 @@ const userSchema = new Schema({
     passwordHash: {type: String, required: true},
     role: {type: String, required: true},
     reputation: {type: Number, required: true, default: 0},
-    timeJoined: {type: Date, required: true}
+    timeJoined: {type: Date, required: true},
+    upvoted_posts: [{type: String}],
+    downvoted_posts: [{type: String}]
 })
 
 const User = mongoose.model('Users', userSchema);

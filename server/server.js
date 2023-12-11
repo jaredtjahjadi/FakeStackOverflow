@@ -100,6 +100,10 @@ app.post('/register', async (req, res) => {
 })
 
 app.post('/login', async (req, res) => {
+    // Empty
+    if(req.body.email.length === 0) return res.status(403).send({message: "Email field required."})
+    if(req.body.password.length === 0) return res.status(403).send({message: "Password field required."})
+
     // Email must be registered with a user.
     const user = await User.findOne({email: req.body.email}).exec()
     if(user === null) return res.status(403).send({message: "The given email is not registered with a user."})
@@ -165,7 +169,9 @@ app.get('/currUser', async (req, res) => {
         uid: user._id,
         username: user.username,
         reputation: user.reputation,
-        role: user.role
+        role: user.role,
+        upvoted_posts: user.upvoted_posts,
+        downvoted_posts: user.downvoted_posts
     })
 })
 
@@ -525,33 +531,78 @@ app.post('/postAnswer', (req, res) => {
     postAnswer();
 })
 
+// lots of copy paste code 😔 i'll fix it later if i have time
 // Increment/decrement the vote of a question or answer, which also affects the original poster's reputation
 app.post('/incVote', async(req, res) => {
     // User cannot vote for themself
     if(req.session.userId === req.body.postedBy) return res.status(403).send({message: "You can't vote for yourself!"});
 
     // User reputation must be >=50 to vote
-    const currUser = await User.findById({_id: req.session.userId}, {reputation: 1})
+    const currUser = await User.findById({_id: req.session.userId}, {reputation: 1, upvoted_posts: 1, downvoted_posts: 1})
     if(currUser.reputation < 50) return res.status(403).send({message: "User reputation must be 50 or higher in order to vote."});
 
-    // 1 vote per user per question/answer/comment constraint
-    // TODO
-
     const post = req.body;
-    if(post.qid) await Question.findByIdAndUpdate({_id: post.qid}, {$inc: {votes: 1}})
-    else await Answer.findByIdAndUpdate({_id: post.aid}, {$inc: {votes: 1}})
-    await User.findByIdAndUpdate({_id: post.postedBy}, {$inc: {reputation: 5}})
+    // Question
+    if(post.qid) {
+        if(currUser.upvoted_posts.includes(post.qid)) return res.status(403).send({message: "You already upvoted this post."});
+        // If the question is currently downvoted
+        if(currUser.downvoted_posts.includes(post.qid)) {
+            await Question.findByIdAndUpdate({_id: post.qid}, {$inc: {votes: 1}}) // Increases votes of question by 1
+            await User.findByIdAndUpdate({_id: post.postedBy}, {$inc: {reputation: 10}})
+            await User.findByIdAndUpdate({_id: req.session.userId}, {$pull: {downvoted_posts: post.qid}});
+        }
+        await Question.findByIdAndUpdate({_id: post.qid}, {$inc: {votes: 1}}) // Increase votes of question by 1
+        await User.findByIdAndUpdate({_id: req.session.userId}, {$push: {upvoted_posts: post.qid}}) // Adds question to list of posts upvoted by user
+    }
+
+    // Answer
+    else {
+        if(currUser.upvoted_posts.includes(post.aid)) return res.status(403).send({message: "You already upvoted this post."});
+        // If the answer is currently downvoted
+        if(currUser.downvoted_posts.includes(post.aid)) {
+            await Answer.findByIdAndUpdate({_id: post.aid}, {$inc: {votes: 1}}) // Increases votes of answer by 1
+            await User.findByIdAndUpdate({_id: post.postedBy}, {$inc: {reputation: 10}})
+            await User.findByIdAndUpdate({_id: req.session.userId}, {$pull: {downvoted_posts: post.aid}});
+        }
+        await Question.findByIdAndUpdate({_id: post.aid}, {$inc: {votes: 1}}) // Increase votes of question by 1
+        await User.findByIdAndUpdate({_id: req.session.userId}, {$push: {upvoted_posts: post.aid}}) // Adds question to list of posts upvoted by user
+    }
+    await User.findByIdAndUpdate({_id: post.postedBy}, {$inc: {reputation: 5}}) // Increase the reputation of OP user by 5
 })
+
 app.post('/decVote', async(req, res) => {
     // User cannot vote for themself
     if(req.session.userId === req.body.postedBy) return res.status(403).send({message: "You can't vote for yourself!"});
-    const currUser = await User.findById({_id: req.session.userId}, {reputation: 1})
+
+    // User reputation must be >=50 to vote
+    const currUser = await User.findById({_id: req.session.userId}, {reputation: 1, upvoted_posts: 1, downvoted_posts: 1})
     if(currUser.reputation < 50) return res.status(403).send({message: "User reputation must be 50 or higher in order to vote."});
+
     const post = req.body;
-    if(post.qid) await Question.findByIdAndUpdate({_id: post.qid}, {$inc: {votes: -1}})
-    else await Answer.findByIdAndUpdate({_id: post.aid}, {$inc: {votes: -1}})
-    await User.findByIdAndUpdate({_id: post.postedBy}, {$inc: {reputation: -10}})
+    // Question
+    if(post.qid) {
+        if(currUser.downvoted_posts.includes(post.qid)) return res.status(403).send({message: "You already downvoted this post."});
+        if(currUser.upvoted_posts.includes(post.qid)) {
+            await Question.findByIdAndUpdate({_id: post.qid}, {$inc: {votes: -1}}) // Decrease votes of question by 1
+            await User.findByIdAndUpdate({_id: req.session.userId}, {$pull: {upvoted_posts: post.qid}});
+        }
+        await Question.findByIdAndUpdate({_id: post.qid}, {$inc: {votes: -1}}) // Decrease votes of question by 1
+        await User.findByIdAndUpdate({_id: req.session.userId}, {$push: {downvoted_posts: post.qid}}) // Adds question to list of posts downvoted by user
+    }
+
+    // Answer
+    else {
+        if(currUser.downvoted_posts.includes(post.aid)) return res.status(403).send({message: "You already downvoted this post."});
+        if(currUser.upvoted_posts.includes(post.aid)) {
+            await Answer.findByIdAndUpdate({_id: post.aid}, {$inc: {votes: -1}}) // Decrease votes of answer by 1
+            await User.findByIdAndUpdate({_id: req.session.userId}, {$pull: {upvoted_posts: post.aid}});
+        }
+        await Answer.findByIdAndUpdate({_id: post.aid}, {$inc: {votes: -1}}) // Decrease votes of answer by 1
+        await User.findByIdAndUpdate({_id: req.session.userId}, {$push: {downvoted_posts: post.aid}}) // Adds answer to list of posts downvoted by user
+    }
+    await User.findByIdAndUpdate({_id: post.postedBy}, {$inc: {reputation: -10}}) // Decreases the reputation of OP user by 5
 })
+
 app.post('/incCVote', async(req, res) => {
     // User cannot vote for themself
     if(req.session.userId === req.body.postedBy) return res.status(403).send({message: "You can't vote for yourself!"});
