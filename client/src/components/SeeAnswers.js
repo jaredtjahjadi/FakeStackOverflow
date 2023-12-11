@@ -67,7 +67,7 @@ export function SeeAnswers() {
         <div id='see-answers-page'>
             <div id='question-metadata-container'>
                 <div id='question-metadata-top'>
-                    <div id='num-answers'>{currDisplayedPost ? currDisplayedPost.ansIds.length : 0} answers</div>
+                    <div id='num-answers'>{currDisplayedPost ? answers.length : 0} answers</div>
                     <p id='question-metadata-title'>{currDisplayedPost.title}</p>
                     {isAuthenticated ? <AskQuestion /> : <div/>}
                 </div>
@@ -76,6 +76,7 @@ export function SeeAnswers() {
                     <div id='question-metadata-text'><Text text={currDisplayedPost.text} /></div>
                     <div id='asked-by'><DateMetadata question={currDisplayedPost} user={username} /></div>
                 </div>
+                <Comments question={currDisplayedPost} />
             </div>
             <div id='answers'>{currDisplayedAnswers.map((ans, index) => <Answer key={ans.aid} answer={ans} setCurrPage={setCurrPage} 
                 setDisplayedPost={setDisplayedPost} isUsers={index < userAnswersEndInd} setAnswers={setAnswers} answers={answers}/>)}</div>

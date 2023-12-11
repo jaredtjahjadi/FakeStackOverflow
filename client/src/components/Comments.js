@@ -37,7 +37,7 @@ export default function Comments({question, answer}) {
     }, [question, answer])
 
     // Comments rerenders only when the comments varaible changes
-    useEffect(() => { setDisplayedComments(comments.slice(commentChunkInd * 3, (commentChunkInd * 3) + 3)) }, [comments])
+    useEffect(() => {setDisplayedComments(comments.slice(commentChunkInd * 3, (commentChunkInd * 3) + 3))}, [comments])
 
     useEffect(() => {
         const getUserData = async () => {
@@ -139,7 +139,7 @@ function Comment({comment, upvotedPosts, isAuthenticated}) {
     return (
         <div className="comment">
             <div className="votes">
-                    <p className="upvote" onClick={() => {
+                    <p className="upvote"><span tabIndex='0' onClick={() => {
                         if(!isAuthenticated) {
                             alert(Constants.GUEST_VOTE_ERROR)
                             return;
@@ -160,7 +160,7 @@ function Comment({comment, upvotedPosts, isAuthenticated}) {
                             }
                         }
                         incCVote();
-                    }}><span tabIndex='0'>🡅</span></p>
+                    }}>🡅</span></p>
                     {votes}
                 </div>
             <div><Text text={comment.text} /></div>

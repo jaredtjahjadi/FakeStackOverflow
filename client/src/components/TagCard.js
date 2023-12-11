@@ -43,7 +43,7 @@ export default function TagCard(props) {
             }
             <div className='tag-card-num-question'>
                 {numQuestions} question{(numQuestions !== 1) ? "s" : ""}
-                {isUsers && numQuestions === 0 && 
+                {isUsers && numQuestions !== 0 && 
                 <>
                     <br/>
                     {isEditing ? (
@@ -88,9 +88,12 @@ export default function TagCard(props) {
                         <>
                             <button tabIndex='0' onClick={() => setIsEditing(true)}>Edit</button>
                             <button tabIndex='0' onClick={async () => {
-                                const res = await axios.post('http://localhost:8000/deleteTag', tag)
-                                setUsedTags(usedTags.filter(t => t.tid !== tag.tid))
-                                console.log(usedTags)
+                                await axios.post('http://localhost:8000/deleteTag', tag)
+                                .then(() => {setUsedTags(usedTags.filter(t => t.tid !== tag.tid))})
+                                .catch((error) => {
+                                    console.log(error);
+                                    alert(error.response.data.message);
+                                })
                             }}>
                                 Delete
                             </button>

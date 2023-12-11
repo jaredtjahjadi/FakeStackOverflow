@@ -85,6 +85,7 @@ function Question({question}) {
     const setCurrPage = questionsInfo.setCurrPage;
     const setDisplayedPost = questionsInfo.setDisplayedPost;
     const isAuthenticated = questionsInfo.isAuthenticated
+    const [numAnswers, setNumAnswers] = useState(0);
     const [tags, setTags] = useState([])
     const [votes, setVotes] = useState(question.votes)
     const [username, setUsername] = useState('')
@@ -128,6 +129,16 @@ function Question({question}) {
         getUserRep();
     }, [])
 
+    useEffect(() => {
+        const getNumAnswers = async () => {
+            await axios.get('http://localhost:8000/questionData', {params: question})
+            .then(res => {
+                setNumAnswers(res.data.answers.length)
+            })
+        }
+        getNumAnswers();
+    }, [question])
+
     return (
         <div className="question">
             <div className="question-container">
@@ -141,12 +152,14 @@ function Question({question}) {
                             const q = question;
                             if(currUserRep > 50 && !upvotedPosts.includes(q.qid) && !isUpvoted) {
                                 q.votes++;
-                                if(isDownvoted) q.votes++;
                                 setVotes(q.votes);
                             }
                             try {
                                 setIsUpvoted(true);
-                                if(isDownvoted) setIsDownvoted(false);
+                                if(isDownvoted) {
+                                    q.votes++;
+                                    setIsDownvoted(false);
+                                }
                                 await axios.post('http://localhost:8000/incVote', q)
                             }
                             catch(error) {
@@ -166,12 +179,14 @@ function Question({question}) {
                             const q = question;
                             if(currUserRep > 50 && !downvotedPosts.includes(q.qid) && !isDownvoted) {
                                 q.votes--;
-                                if(isUpvoted) q.votes--;
                                 setVotes(q.votes);
                             }
                             try {
                                 setIsDownvoted(true);
-                                if(isUpvoted) setIsUpvoted(false);
+                                if(isUpvoted) {
+                                    q.votes--;
+                                    setIsUpvoted(false);
+                                }
                                 await axios.post('http://localhost:8000/decVote', q)
                             }
                             catch(error) {
@@ -183,7 +198,7 @@ function Question({question}) {
                     }}><span tabIndex='0'>🡇</span></p>
                 </div>
                 <p className='interaction-stats'>
-                    {question.ansIds.length} answers
+                    {numAnswers} answers
                     <br />
                     {question.views} views
                 </p>

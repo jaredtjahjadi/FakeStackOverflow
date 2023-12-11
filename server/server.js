@@ -139,6 +139,11 @@ app.get('/userProfile', async (req, res) => {
     })
 })
 
+app.get('/questionData', async (req, res) => {
+    const q = await Question.findById(req.query.qid);
+    res.send(q);
+})
+
 app.get('/postedQuestions', (req, res) => {
     Question.find({posted_by: req.query.uid}).exec()
         .then(questions => { res.send(formatQuestions(questions)) })
@@ -244,7 +249,11 @@ app.post('/modifyTag', async (req, res) => {
 
 app.post('/deleteTag', async (req, res) => {
     try {
-        await Tag.deleteOne({_id: req.body.tid})
+        // All questions that have the tag to be deleted and were not posted by the current user
+        const questionsWithTag = await Question.find({$and: [{tags: {$in: req.body.tid}}, {posted_by: {$ne: req.session.userId}}]})
+        // If such a question exists, cannot delete tag b/c
+        if(questionsWithTag.length > 0) return res.status(403).send({message: "Tag is in use by another user(s) and cannot be deleted."})
+        await Tag.deleteOne({_id: req.body.tid}) // Deletes tag
         res.status(200).send()
     } catch(error) { console.error(error) }
 })
@@ -606,8 +615,16 @@ app.post('/decVote', async(req, res) => {
 app.post('/incCVote', async(req, res) => {
     // User cannot vote for themself
     if(req.session.userId === req.body.postedBy) return res.status(403).send({message: "You can't vote for yourself!"});
-    await Comment.findByIdAndUpdate({_id: req.body.cid}, {$inc: {votes: 1}})
+
+    // User reputation must be >=50 to vote
+    const currUser = await User.findById({_id: req.session.userId}, {reputation: 1, upvoted_posts: 1})
+    if(currUser.reputation < 50) return res.status(403).send({message: "User reputation must be 50 or higher in order to vote."});
+    const post = req.body;
+    if(currUser.upvoted_posts.includes(post.cid)) return res.status(403).send({message: "You already upvoted this post."});
+    await Comment.findByIdAndUpdate({_id: post.cid}, {$inc: {votes: 1}})
+    await User.findByIdAndUpdate({_id: req.session.userId}, {$push: {upvoted_posts: post.cid}}) // Adds comment to list of posts downvoted by user
 })
+
 app.post('/incView', async(req, res) => { await Question.findByIdAndUpdate({_id: req.body.qid}, {$inc: {views: 1}}) })
 
 app.post('/postComment', (req, res) => {
@@ -624,7 +641,7 @@ app.post('/postComment', (req, res) => {
             com.save();
             if(req.body.qid) await Question.findByIdAndUpdate({_id: req.body.qid}, { $push: { comments: com._id }})
             else await Answer.findByIdAndUpdate({_id: req.body.aid}, { $push: { comments: com._id }})
-            res.status(200).send();
+            res.status(200).send(com);
         } catch(error) { console.log(error) }
     }
     postComment();

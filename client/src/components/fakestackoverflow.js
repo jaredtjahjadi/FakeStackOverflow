@@ -55,7 +55,6 @@ export default function FakeStackOverflow() {
 
     case null:
       return <WelcomePage setIsAuthenticated={setIsAuthenticated}/>
-      break;
 
     default:
       return <HomePage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated}/>
