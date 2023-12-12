@@ -13,9 +13,12 @@ let commentChunkInd = 0;
     Fix issue: When there are multiple pages for a comments section, clicking on Next will show the next
     page of comments for a split second and then go back to the first page.
 */
-export default function Comments({question, answer}) {
-    const questionsInfo = useContext(QuestionsInfo);
-    const isAuthenticated = questionsInfo.isAuthenticated;
+export default function Comments(props) {
+    let question = props.question;
+    let answer = props.answer;
+    const questionsInfo = useContext(QuestionsInfo)
+    const setIsAuthenticated = questionsInfo.setIsAuthenticated
+    const setCurrPage = questionsInfo.setCurrPage
     const [comments, setComments] = useState([]);
     const [currDisplayedComments, setDisplayedComments] = useState([]);
     const [insertComment, showInsertComment] = useState(false);
@@ -31,11 +34,20 @@ export default function Comments({question, answer}) {
                 let res;
                 if(question) res = await axios.get(`http://localhost:8000/questions/${question.qid}/comments`);
                 if(answer) res = await axios.get(`http://localhost:8000/answers/${answer.aid}/comments`);
-                setComments(res.data.reverse()); // Newest first
-            } catch(error) { console.log(error) }
+                setComments(res.data.reverse());
+            } catch(error) { 
+                if(!error.response) {
+                    alert("Request failed, please try again later.")
+                    setIsAuthenticated(null)
+                    setCurrPage(Constants.SPLASH_PAGE)
+                }
+                else {
+                    alert("Post being commented no longer exists.")
+                }
+            }
         }
         getComments();
-    }, [question, answer])
+    }, [question, answer, setCurrPage, setIsAuthenticated])
 
     // Comments rerenders only when the comments varaible changes
     useEffect(() => {setDisplayedComments(comments.slice(commentChunkInd * 3, (commentChunkInd * 3) + 3))}, [comments])
@@ -81,6 +93,7 @@ export default function Comments({question, answer}) {
                 await axios.post('http://localhost:8000/postComment', comment)
                 setComments([comment, ...comments])
             } catch(error) {
+
                 console.log(error);
                 alert(error.response.data.message);
             }

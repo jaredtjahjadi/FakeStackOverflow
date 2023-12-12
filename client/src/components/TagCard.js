@@ -76,7 +76,7 @@ export default function TagCard(props) {
 
                             setIsEditing(false)
                             setErrMsg("")
-                            const res = await axios.post('http://localhost:8000/modifyTag', {
+                            await axios.post('http://localhost:8000/modifyTag', {
                                 tid: tag.tid,
                                 name: inputtedName
                             })

@@ -86,6 +86,8 @@ function Question({question}) {
     const setDisplayedPost = questionsInfo.setDisplayedPost;
     const isAuthenticated = questionsInfo.isAuthenticated
     const [numAnswers, setNumAnswers] = useState(0);
+    const setIsAuthenticated = questionsInfo.setIsAuthenticated
+
     const [tags, setTags] = useState([])
     const [votes, setVotes] = useState(question.votes)
     const [username, setUsername] = useState('')
@@ -101,11 +103,18 @@ function Question({question}) {
 
     useEffect(() => {
         const getTags = async () => {
-            await axios.get('http://localhost:8000/tags', {params: question.tagIds})
-            .then(res => { setTags(res.data) })
+            try {
+                await axios.get('http://localhost:8000/tags', {params: question.tagIds})
+                .then(res => { setTags(res.data) })
+            }
+            catch(error) {
+                alert('Server is down, try again later')
+                setIsAuthenticated(null)
+                setCurrPage(Constants.SPLASH_PAGE)
+            }
         }
         getTags();
-    }, [question])
+    }, [question, setCurrPage, setIsAuthenticated])
 
     // Username of the user who posted the current question
     useEffect(() => {
