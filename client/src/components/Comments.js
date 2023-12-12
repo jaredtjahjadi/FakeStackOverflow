@@ -18,6 +18,7 @@ export default function Comments(props) {
     let answer = props.answer;
     const questionsInfo = useContext(QuestionsInfo)
     const setIsAuthenticated = questionsInfo.setIsAuthenticated
+    const isAuthenticated = questionsInfo.isAuthenticated
     const setCurrPage = questionsInfo.setCurrPage
     const [comments, setComments] = useState([]);
     const [currDisplayedComments, setDisplayedComments] = useState([]);
