@@ -20,6 +20,7 @@ export default function Comments({question, answer}) {
     const [currDisplayedComments, setDisplayedComments] = useState([]);
     const [insertComment, showInsertComment] = useState(false);
     const [formErrors, setFormErrors] = useState({});
+    const [currUserId, setCurrUserId] = useState('');
     const [currUserRep, setCurrUserRep] = useState(0);
     const [upvotedPosts, setUpvotedPosts] = useState([]);
 
@@ -43,6 +44,7 @@ export default function Comments({question, answer}) {
         const getUserData = async () => {
             await axios.get('http://localhost:8000/currUser')
             .then(res => {
+                setCurrUserId(res.data.uid);
                 setCurrUserRep(res.data.reputation)
                 setUpvotedPosts(res.data.upvoted_posts)
             })
@@ -88,6 +90,7 @@ export default function Comments({question, answer}) {
     const validateForm = ({commentText}) => {
         const errors = {};
         if(commentText.length === 0) errors.commentText = Constants.EMPTY_FIELD_ERROR;
+        if(commentText.length > 140) errors.commentText = "Comment text must be 140 characters or less.";
         const tokens = commentText.match(/\[[^\]]*\]\([^)]*\)/g); // [...](...). "..." = anything (including empty string)
         const regex = /\[.+?\]\(\s*(https:\/\/|http:\/\/)[^)](.*?)\)/g; // [text](link)
         if(tokens) {
@@ -99,7 +102,7 @@ export default function Comments({question, answer}) {
 
     return (
         <div className="comment-container">
-            <div className="comments">{currDisplayedComments.map((c) => <Comment key={c.cid} comment={c} upvotedPosts={upvotedPosts} isAuthenticated={isAuthenticated} />)}</div>
+            <div className="comments">{currDisplayedComments.map((c) => <Comment key={c.cid} comment={c} upvotedPosts={upvotedPosts} isAuthenticated={isAuthenticated} currUserId={currUserId} />)}</div>
             
             {insertComment
                 ? <form id='post-comment' onSubmit={handleSubmit}>
@@ -124,10 +127,11 @@ export default function Comments({question, answer}) {
     )
 }
 
-function Comment({comment, upvotedPosts, isAuthenticated}) {
+function Comment({comment, upvotedPosts, isAuthenticated, currUserId}) {
     const [username, setUsername] = useState('');
     const [votes, setVotes] = useState(comment.votes);
     const [isUpvoted, setIsUpvoted] = useState(false);
+
     useEffect(() => {
         const getCommentUsername = async () => {
             await axios.get('http://localhost:8000/userData', {params: comment })
@@ -146,7 +150,7 @@ function Comment({comment, upvotedPosts, isAuthenticated}) {
                         }
                         const incCVote = async() => {
                             const c = comment;
-                            if(!upvotedPosts.includes(c.cid) && !isUpvoted) {
+                            if(!upvotedPosts.includes(c.cid) && !isUpvoted && currUserId !== c.postedBy) {
                                 c.votes++;
                                 setVotes(c.votes);
                             }

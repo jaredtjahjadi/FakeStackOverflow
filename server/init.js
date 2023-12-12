@@ -98,10 +98,17 @@ const populate = async () => {
   let c3 = await commentCreate('I\'m sorry, I really don\'t know what you mean by this...', u4)
   let c4 = await commentCreate('Just google it lol', u2)
   let c5 = await commentCreate('Thank you all for the feedback!', u6)
+  let c6 = await commentCreate('Please help me guys.........', u3)
+  let c7 = await commentCreate('chatgpt\'s a thing yknow', u5)
+  let c8 = await commentCreate('Good post! 1 Reddit Gold for you.', u7)
+  let c9 = await commentCreate('Good post! 1 Reddit Gold for you.', u7)
+  let c10 = await commentCreate('Sorry for spam.', u7)
   let t1 = await tagCreate('react', u6);
   let t2 = await tagCreate('javascript', u7);
   let t3 = await tagCreate('android', u7);
   let t4 = await tagCreate('preferences', u7);
+  let t5 = await tagCreate('python', u3);
+  let t6 = await tagCreate('mongodb', u5)
   let a1 = await answerCreate('React Router is mostly a wrapper around the history library. history handles interaction with the browser\'s window.\nhistory for you with its browser and hash histories. It also provides a memory history which is useful for environments that don\'t have a global history. This is particularly useful in mobile app development (react-native) and unit testing with Node.',
     u1, false);
   let a2 = await answerCreate('On my end, I like to have a single history object that I can carry even outside components. I like to have a single history.js file that I import on demand, and just manipulate it. You just have to change BrowserRouter to Router, and specify the history prop. This doesn\'t change anything for you, except that you have your own history object that you can manipulate as you want. You need to install history, the library used by react-router.',
@@ -112,10 +119,24 @@ const populate = async () => {
     u4, false);
   let a5 = await answerCreate('I just found all the above examples just too confusing, so I wrote my own.',
     u5, false);
+  let a6 = await answerCreate('I just found all the above examples just too confusing, so I wrote my own.',
+    u5, false);
+  let a7 = await answerCreate('I just found all the above examples just too confusing, so I wrote my own.',
+    u5, false);
+  let a8 = await answerCreate('ok sana we get it already!!!!!!!',
+    u1, false);
+  await questionCreate('Lorem ipsum dolor sit amet', 'consectetur adipiscing elit', 'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua',
+    [t3, t4], false, u4, false, false, false)
+  await questionCreate('Python question', 'making a function', 'need help making a function in python. i tried watching [this video](https://www.youtube.com/watch?v=yivyNCtVVDk) and [this one](https://www.youtube.com/watch?v=Kn1HF3oD19c) but to no avail.',
+  [t5], false, u2, false, false, false)
+  await questionCreate('How do I install MongoDB?', 'need help pls', 'i dont understand how to install mongodb, how do i run it in the terminal so i can use it with my react website?',
+    [t1, t6], false, u5, false, false, [c4])
+  await questionCreate('Python installation assistance', 'Can someone help me install Python?', 'This might be a dumb question sorry in advance. But what options do I choose in the [Python](https://www.python.org/) installation executable? This is confusing to me.',
+    [t5], false, u3, false, 799, [c6]);
   await questionCreate('Programmatically navigate using React router', 'Need help with React router.', 'the alert shows the proper index for the li clicked, and when I alert the variable within the last function I\'m calling, moveToNextImage(stepClicked), the same value shows but the animation isn\'t happening. This works many other ways, but I\'m trying to pass the index value of the list item clicked to use for the math to calculate.',
-    [t1, t2], [a1, a2], u6, false, false, [c3, c4]);
-  await questionCreate('android studio save string shared preference, start activity and load the saved string', 'How do I use strings with android studio?', 'I am using bottom navigation view but am using custom navigation, so my fragments are not recreated every time i switch to a different view. I just hide/show my fragments depending on the icon selected. The problem i am facing is that whenever a config change happens (dark/light theme), my app crashes. I have 2 fragments in this activity and the below code is what i am using to refrain them from being recreated.',
-    [t3, t4, t2], [a3, a4, a5], u7, false, 121, [c1, c2]);
+    [t1, t2], [a1, a2], u6, false, false, [c3, c7]);
+  await questionCreate('android studio save string shared preference, start activity and load the saved string', 'How do I use saved strings with android studio?', 'I am using bottom navigation view but am using custom navigation, so my fragments are not recreated every time i switch to a different view. I just hide/show my fragments depending on the icon selected. The problem i am facing is that whenever a config change happens (dark/light theme), my app crashes. I have 2 fragments in this activity and the below code is what i am using to refrain them from being recreated.',
+    [t3, t4, t2], [a3, a4, a5, a6, a7, a8], u7, false, 121, [c1, c2, c8, c9, c10]);
   if(db) db.close();
   console.log('done');
 }
